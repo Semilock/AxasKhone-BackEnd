@@ -16,5 +16,7 @@ media
 
 # End of https://www.gitignore.io/api/django
 /env/
+/venv/
+/venvg/
 /.idea/
 
