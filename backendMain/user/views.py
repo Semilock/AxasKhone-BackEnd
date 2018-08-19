@@ -36,7 +36,7 @@ def login(request):
             return JsonResponse({"error" : "bad_password" ,})
         token = Token(user= user.profile , value=  str(uuid4()))
        # print("token" , token.value)
-        return JsonResponse({"Token": token.value} ,)
+        return JsonResponse({"Token": token.value ,"username": username})
 
     except User.DoesNotExist:
         return JsonResponse({"error" : "bad_username"})
