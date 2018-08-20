@@ -1,7 +1,13 @@
+from django.conf.urls import url, include
 from django.contrib import admin
-from django.urls import include, path
+from rest_framework_jwt.views import verify_jwt_token ,obtain_jwt_token
 
-urlpatterns = [
-    path('login/', include('user.urls')),
-    path('admin/', admin.site.urls),
-]
+from user import views
+
+urlpatterns = {
+    url(r'^login/', obtain_jwt_token),
+    url(r'^register/', views.register),
+    url(r'^admin/', admin.site.urls),
+    # url(r'^register-complement/', views.UserViewSet.as_view({'post': 'update'})),
+    url(r'^api-token-verify/', verify_jwt_token),
+}
