@@ -28,16 +28,17 @@ def login(request):
 
         print ("username" , username)
         print ("password" , password)
-
         user= User.objects.get(username= username)
         #return JsonResponse({"username" : user.username})
 
         if( not user.check_password(password)):
-            return JsonResponse({"error" : "bad_password" ,})
+            error = {"password": "پسورد اشتباه است"}
+            return JsonResponse(error)
         token = Token(user= user.profile , value=  str(uuid4()))
-       # print("token" , token.value)
+        print("token" , token.value)
         return JsonResponse({"Token": token.value ,"username": username})
 
     except User.DoesNotExist:
-        return JsonResponse({"error" : "bad_username"})
+        error = {"username" : "یوزرنیم اشتباه است"}
+        return JsonResponse(error)
 

@@ -5,6 +5,7 @@ from django.dispatch import receiver
 
 class Profile(models.Model):
     user= models.OneToOneField(User , on_delete=models.CASCADE)
+    nick_name = models.CharField(max_length=200 , null=True)
 
 class Token (models.Model):
     user= models.ForeignKey(Profile , on_delete= models.PROTECT)
