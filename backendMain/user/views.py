@@ -32,23 +32,10 @@ def profile_info(request):
 #         username = request.POST.get('username')
 #         password = request.POST.get('password')
 #
-#         print("username", username)
-#         print("password", password)
-#         user = User.objects.get(username=username)
-#         # return JsonResponse({"username" : user.username})
-#
-#         if (not user.check_password(password)):
-#             error = {"password": "پسورد اشتباه است"}
-#             return JsonResponse(error)
-#         token = Token(user=user.profile, value=str(uuid4()))
-#         print("token", token.value)
-#         return JsonResponse({"Token": token.value, "username": username})
-#
-#     except User.DoesNotExist:
-#         error = {"username": "یوزرنیم اشتباه است"}
-#         return JsonResponse(error)
-
-
+#         #print ("username" , username)
+#         #print ("password" , password)
+#         user= User.objects.get(username= username)
+#         #return JsonResponse({"username" : user.username})
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes((AllowAny,))
@@ -74,6 +61,29 @@ def register(request):
     payload = jwt_payload_handler(user)
     token = jwt_encode_handler(payload)
     return Response({'token': token})
+
+
+def change_password(request):
+    # try:
+    #     token_value = request.POST.get('token')
+    #     old_password = request.POST.get('old_password')
+    #     new_password = request.POST.get('new_password')
+    #
+    #     token = Token.objects.get(value = token_value)
+    #     profile= Profile.objects.get(token = token)
+    #     user = User.objects.get(profile = profile)
+    #     if(not user.check_password(old_password)):
+    #         error = {"password" : "پسورد قبلی اشتباه است!"}
+    #         return JsonResponse (error)
+    #
+    #
+    #     user.set_password(new_password)
+    #     user.save()
+    #     return JsonResponse({"password": "پسورد تغییر یافت"})
+    # except Token.DoesNotExist :
+    #     error = {"token": "bad_token"}
+    #     return JsonResponse(error)
+    return JsonResponse()
 
 
 def register_complement(request):  # argahvan is working on it
