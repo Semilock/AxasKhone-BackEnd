@@ -28,14 +28,33 @@ def profile_info(request):
 
 
 # def login(request):
+#
 #     try:
 #         username = request.POST.get('username')
 #         password = request.POST.get('password')
+#         user = User.objects.get(username=username)
+#         if not user.check_password(password):
+#             return JsonResponse({
+#                 "error": "wrong_password",
+#             })
 #
-#         #print ("username" , username)
-#         #print ("password" , password)
-#         user= User.objects.get(username= username)
-#         #return JsonResponse({"username" : user.username})
+#         #token = Token(value=str(uuid4()), profile=user.profile)
+#         jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+#         jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+#         payload = jwt_payload_handler(user)
+#         token = jwt_encode_handler(payload)
+#         return Response({'token': token})
+#
+#         token.save()
+#         return JsonResponse({
+#             "token": token.value,
+#         })
+#     except User.DoesNotExist:
+#         return JsonResponse({
+#             "error": "wrong_username",
+#         })
+#
+
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes((AllowAny,))
@@ -62,28 +81,24 @@ def register(request):
     token = jwt_encode_handler(payload)
     return Response({'token': token})
 
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes((AllowAny,))
+def change_password(request):
+    #we should check empty fields! work on it!
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+    if old_password is None or new_password is None:
+        return Response({'error': 'Please provide both old and new password'},
+                        status=HTTP_400_BAD_REQUEST)
+    user = request.user
+    if(not user.check_password(old_password)):
+        error = {"error" : "wrong_old_password!"}
+        return JsonResponse (error)
+    user.set_password(new_password)
+    user.save()
 
-# def change_password(request):
-    # try:
-    #     token_value = request.POST.get('token')
-    #     old_password = request.POST.get('old_password')
-    #     new_password = request.POST.get('new_password')
-    #
-    #     token = Token.objects.get(value = token_value)
-    #     profile= Profile.objects.get(token = token)
-    #     user = User.objects.get(profile = profile)
-    #     if(not user.check_password(old_password)):
-    #         error = {"password" : "پسورد قبلی اشتباه است!"}
-    #         return JsonResponse (error)
-    #
-    #
-    #     user.set_password(new_password)
-    #     user.save()
-    #     return JsonResponse({"password": "پسورد تغییر یافت"})
-    # except Token.DoesNotExist :
-    #     error = {"token": "bad_token"}
-    #     return JsonResponse(error)
-    # return JsonResponse()
+    return JsonResponse({"change_password" : "done"})
 
 
 def register_complement(request):  # argahvan is working on it
