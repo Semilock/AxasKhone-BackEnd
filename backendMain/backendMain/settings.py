@@ -25,8 +25,10 @@ SECRET_KEY = '_%sg(q&unfl7vjb#m1g6kwi4ov!!()dlgdps&m4ap3h8zs0*l7'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    #TODO : delete therse IPS
     '192.168.10.63',
-    '127.0.0.1'
+    '127.0.0.1',
+    '192.168.11.163'
                  ]
 
 # Application definition

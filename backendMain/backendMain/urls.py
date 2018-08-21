@@ -14,7 +14,19 @@ urlpatterns = {
     # url(r'^', include(router.urls)),
     url(r'^user/', include('user.urls')),
     url(r'^login/', obtain_jwt_token),
+    # url(r'^login/', obtain_jwt_token),
+    url(r'^register/', views.register),
     url(r'^admin/', admin.site.urls),
+    url(r'^api-token-verify/', verify_jwt_token),
+    url(r'^api-token-refresh/', refresh_jwt_token),
+    url(r'^user_api/', views.UsersViewApi.as_view()),  # for test
+    # url(r'^register-complement/', ),
+
+    url(r'^login/', views.login),
+    url(r'^test/', views.test),
+
+    # url(r'^register-complement/', ProfileViewSet.)
+
     url(r'^api_token_verify/', verify_jwt_token),
     url(r'^api_token_refresh/', refresh_jwt_token),
     url(r'^register/', views.register),

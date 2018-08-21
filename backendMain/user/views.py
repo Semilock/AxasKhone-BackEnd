@@ -29,39 +29,48 @@ def profile_info(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# def login(request):
-#
-#     try:
-#         username = request.POST.get('username')
-#         password = request.POST.get('password')
-#         user = User.objects.get(username=username)
-#         if not user.check_password(password):
-#             return JsonResponse({
-#                 "error": "wrong_password",
-#             })
-#
-#         #token = Token(value=str(uuid4()), profile=user.profile)
-#         jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-#         jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-#         payload = jwt_payload_handler(user)
-#         token = jwt_encode_handler(payload)
-#         return Response({'token': token})
-#
-#         token.save()
-#         return JsonResponse({
-#             "token": token.value,
-#         })
-#     except User.DoesNotExist:
-#         return JsonResponse({
-#             "error": "wrong_username",
-#         })
-#
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes((AllowAny,))
+def login(request):
+    try:
+        email = request.data.get('email')
+        password = request.data.get('password')
+        user = User.objects.get(email=email)
+        if email is None:
+            return Response({"error": "empty_email"},
+                        status=HTTP_400_BAD_REQUEST)
+        if password is None:
+            return Response({'error': "empty_password"},
+                            status=HTTP_400_BAD_REQUEST)
+        if not user.check_password(password):
+            return JsonResponse({
+                "error": "wrong_information"
+            }, status=HTTP_400_BAD_REQUEST )
+
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        return Response({'token': token})
+
+        return JsonResponse({
+            "token": token.value,
+        })
+    except User.DoesNotExist:
+        if email is None:
+            return Response({"error": "empty_email"},
+                        status=HTTP_400_BAD_REQUEST)
+        return JsonResponse({
+            "error": "wrong_information",
+        })
+
 
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes((AllowAny,))
 def register(request):
-    ##we should check empty fields! work on it!
+    #TODO: we should check empty fields! work on it!
     """"
     this should take email instead of username
     """
@@ -87,11 +96,10 @@ def register(request):
     token = jwt_encode_handler(payload)
     return Response({'token': token})
 
-
 @csrf_exempt
 @api_view(["POST"])
 def change_password(request):
-    # we should check empty fields! work on it!
+    #we should check empty fields! work on it!
     old_password = request.data.get('old_password')
     new_password = request.data.get('new_password')
     if old_password is None or new_password is None:
@@ -120,20 +128,6 @@ def profile_info(request):
     return JsonResponse(serializer.data)
 
 
-def register_complement(request):  # argahvan is working on it
-    if not request.user:
-        return Response({'status': 'failed'})
-    else:
-        fullname = request.data.get("fullname")
-        username = request.data.get("username")
-        bio = request.data.get("bio")
-        request.user.profile.fullname(fullname)
-        request.user.username(username)
-        request.profile.bio(bio)
-        request.user.profile.save()
-        request.user.save()
-        return Response({'status': 'succeeded'})
-
 
 class UsersViewApi(APIView):
     def get(self, request):
@@ -149,11 +143,11 @@ class RegisterComplementView(APIView):
             return Response({'status': 'failed'})
         else:
             fullname = request.data.get('fullname')
-            email = request.data.get("email")
+            username = request.data.get("email")
             bio = request.data.get("bio")
             profile = Profile.objects.get(user=request.user)
             profile.fullname = fullname
-            request.user.email = email
+            request.user.username = username
             profile.bio = bio
             profile.save()
             request.user.save()
