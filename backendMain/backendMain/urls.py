@@ -9,7 +9,6 @@ urlpatterns = {
     url(r'^user/', include('user.urls')),
     url(r'^login/', obtain_jwt_token),
     url(r'^register/', views.register),
-    url(r'^change_password/', views.change_password),
     url(r'^admin/', admin.site.urls),
     # url(r'^register-complement/', views.UserViewSet.as_view({'post': 'update'})),
     url(r'^api-token-verify/', verify_jwt_token),
