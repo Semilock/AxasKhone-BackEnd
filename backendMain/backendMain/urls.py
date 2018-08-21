@@ -6,12 +6,12 @@ from rest_framework_jwt.views import verify_jwt_token ,obtain_jwt_token, refresh
 from backendMain.viewSets import ProfileViewSet
 from user import views
 
-router = routers.DefaultRouter()
-router.register(r'register-complement', ProfileViewSet)
+# router = routers.DefaultRouter()
+# router.register(r'register-complement', ProfileViewSet)
 
 
 urlpatterns = {
-    url(r'^', include(router.urls)),
+    # url(r'^', include(router.urls)),
     url(r'^user/', include('user.urls')),
     url(r'^login/', obtain_jwt_token),
     url(r'^admin/', admin.site.urls),

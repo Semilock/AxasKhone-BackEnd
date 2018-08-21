@@ -12,3 +12,5 @@ class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin ):
 
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializerPost
+
+

@@ -65,18 +65,21 @@ def register(request):
     """"
     this should take email instead of username
     """
-    username = request.data.get("username")
+    email = request.data.get("email")
     password = request.data.get("password")
-    if username is None or password is None:
+    if email is None or email == "" or password is None or password == "":
         return Response({'error': 'Please provide both email and password'},
                         status=HTTP_400_BAD_REQUEST)
-    user = authenticate(username=username, password=password)
-    if not user:
-        user = User(username=username)
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        user = None
+    if user is None:
+        user = User(username=email, email=email)
         user.set_password(password)
         user.save()
     else:
-        return Response({'error': 'this username is already taken'},
+        return Response({'error': 'this email is already taken'},
                         status=HTTP_404_NOT_FOUND)
     jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
     jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -107,17 +110,14 @@ def change_password(request):
 @csrf_exempt
 @api_view(["GET"])
 def profile_info(request):
-    #more details for profile should return
+    # more details for profile should return
     """"
     this should show profile of user
     """
-    user=request.user
+    user = request.user
     profile = Profile.objects.get(user=user)
-    serializer = ProfileSerializerGet (profile)
+    serializer = ProfileSerializerGet(profile)
     return JsonResponse(serializer.data)
-
-
-
 
 
 def register_complement(request):  # argahvan is working on it
@@ -125,10 +125,10 @@ def register_complement(request):  # argahvan is working on it
         return Response({'status': 'failed'})
     else:
         fullname = request.data.get("fullname")
-        email = request.data.get("email")
+        username = request.data.get("username")
         bio = request.data.get("bio")
         request.user.profile.fullname(fullname)
-        request.user.email(email)
+        request.user.username(username)
         request.profile.bio(bio)
         request.user.profile.save()
         request.user.save()
