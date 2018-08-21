@@ -84,23 +84,24 @@ def register(request):
     token = jwt_encode_handler(payload)
     return Response({'token': token})
 
+
 @csrf_exempt
 @api_view(["POST"])
 def change_password(request):
-    #we should check empty fields! work on it!
+    # we should check empty fields! work on it!
     old_password = request.data.get('old_password')
     new_password = request.data.get('new_password')
     if old_password is None or new_password is None:
         return Response({'error': 'Please provide both old and new password'},
                         status=HTTP_400_BAD_REQUEST)
     user = request.user
-    if(not user.check_password(old_password)):
-        error = {"error" : "wrong_old_password!"}
-        return JsonResponse (error)
+    if (not user.check_password(old_password)):
+        error = {"error": "wrong_old_password!"}
+        return JsonResponse(error)
     user.set_password(new_password)
     user.save()
 
-    return JsonResponse({"change_password" : "done"})
+    return JsonResponse({"change_password": "done"})
 
 
 @csrf_exempt
@@ -140,3 +141,20 @@ class UsersViewApi(APIView):
 
     def post(self, request):
         return JsonResponse({'user': request.user.username})
+
+
+class RegisterComplementView(APIView):
+    def post(self, request):
+        if not request.user:
+            return Response({'status': 'failed'})
+        else:
+            fullname = request.data.get('fullname')
+            email = request.data.get("email")
+            bio = request.data.get("bio")
+            profile = Profile.objects.get(user=request.user)
+            profile.fullname = fullname
+            request.user.email = email
+            profile.bio = bio
+            profile.save()
+            request.user.save()
+            return Response({'status': 'succeeded'})

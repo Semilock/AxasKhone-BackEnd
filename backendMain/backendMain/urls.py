@@ -9,17 +9,14 @@ from user import views
 router = routers.DefaultRouter()
 router.register(r'register-complement', ProfileViewSet)
 
+
 urlpatterns = {
     url(r'^', include(router.urls)),
     url(r'^user/', include('user.urls')),
     url(r'^login/', obtain_jwt_token),
-    url(r'^register/', views.register),
     url(r'^admin/', admin.site.urls),
-    url(r'^api-token-verify/', verify_jwt_token),
-    url(r'^api-token-refresh/', refresh_jwt_token),
-    url(r'^user_api/', views.UsersViewApi.as_view()),  # for test
-    # url(r'^register-complement/', ),
-
-    # url(r'^register-complement/', ProfileViewSet.)
-
+    url(r'^api_token_verify/', verify_jwt_token),
+    url(r'^api_token_refresh/', refresh_jwt_token),
+    url(r'^register/', views.register),
+    url(r'^register_complement/', views.RegisterComplementView.as_view()),
 }
