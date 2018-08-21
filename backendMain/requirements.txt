@@ -1,3 +1,4 @@
+djangorestframework-jwt
 Django==2.1
 djangorestframework==3.8.2
 djangorestframework-simplejwt==3.2.3

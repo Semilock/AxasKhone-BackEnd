@@ -41,7 +41,7 @@ def profile_info(request):
 @permission_classes((AllowAny,))
 def register(request):
     """"
-    this should take email instead of password
+    this should take email instead of username
     """
     username = request.data.get("username")
     password = request.data.get("password")
