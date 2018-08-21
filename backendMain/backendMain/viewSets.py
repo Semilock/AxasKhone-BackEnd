@@ -1,15 +1,16 @@
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.mixins import UpdateModelMixin
+from rest_framework.mixins import UpdateModelMixin, RetrieveModelMixin
 
 from backendMain.serializers import ProfileSerializer
 from user.models import Profile
 
 
-@api_view(["POST"])
-class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin):
+class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin ):
+
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+
 
 

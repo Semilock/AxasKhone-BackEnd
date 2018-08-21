@@ -10,7 +10,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from .models import create_user_profile
 from rest_framework_jwt.settings import api_settings
 from backendMain import serializers
-
+from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from user.models import Profile
@@ -63,7 +63,7 @@ def register(request):
     return Response({'token': token})
 
 
-def change_password(request):
+# def change_password(request):
     # try:
     #     token_value = request.POST.get('token')
     #     old_password = request.POST.get('old_password')
@@ -83,7 +83,7 @@ def change_password(request):
     # except Token.DoesNotExist :
     #     error = {"token": "bad_token"}
     #     return JsonResponse(error)
-    return JsonResponse()
+    # return JsonResponse()
 
 
 def register_complement(request):  # argahvan is working on it
@@ -99,3 +99,11 @@ def register_complement(request):  # argahvan is working on it
         request.user.profile.save()
         request.user.save()
         return Response({'status': 'succeeded'})
+
+
+class UsersViewApi(APIView):
+    def get(self, request):
+        return JsonResponse({'user': request.user.username})
+
+    def post(self, request):
+        return JsonResponse({'user': request.user.username})
