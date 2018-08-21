@@ -37,11 +37,11 @@ def login(request):
         email = request.data.get('email')
         password = request.data.get('password')
         user = User.objects.get(email=email)
-        if email is None:
+        if email is None or email=="":
             return Response({"error": "empty_email"},
                         status=HTTP_400_BAD_REQUEST)
-        if password is None:
-            return Response({'error': "empty_password"},
+        if password is None or password=="":
+            return Response({"error": "empty_password"},
                             status=HTTP_400_BAD_REQUEST)
         if not user.check_password(password):
             return JsonResponse({
@@ -58,7 +58,7 @@ def login(request):
             "token": token.value,
         })
     except User.DoesNotExist:
-        if email is None:
+        if email is None or email=="":
             return Response({"error": "empty_email"},
                         status=HTTP_400_BAD_REQUEST)
         return JsonResponse({
