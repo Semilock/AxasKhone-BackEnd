@@ -9,13 +9,6 @@ class ProfileSerializerPost(serializers.ModelSerializer):
         model = Profile
         fields = ('fullname', 'bio', 'email', 'username')
 
-
-class ProfileSerializerPost(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ('fullname', 'bio', 'email', 'username')
-
-
 class ProfileSerializerGet(serializers.ModelSerializer):
     class Meta:
         model = Profile

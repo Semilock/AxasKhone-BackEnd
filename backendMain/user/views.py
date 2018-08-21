@@ -12,7 +12,7 @@ from backendMain.serializers import ProfileSerializerGet
 from .models import create_user_profile
 from rest_framework_jwt.settings import api_settings
 from backendMain import serializers
-
+from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from user.models import Profile
@@ -132,3 +132,11 @@ def register_complement(request):  # argahvan is working on it
         request.user.profile.save()
         request.user.save()
         return Response({'status': 'succeeded'})
+
+
+class UsersViewApi(APIView):
+    def get(self, request):
+        return JsonResponse({'user': request.user.username})
+
+    def post(self, request):
+        return JsonResponse({'user': request.user.username})
