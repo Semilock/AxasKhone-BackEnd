@@ -4,7 +4,12 @@ from user import models
 from user.models import Profile
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializerPost(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ('fullname', 'bio', 'username', 'email')
+        fields = ('fullname', 'bio', 'email', 'username')
+
+class ProfileSerializerGet(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields =( '__all__')
