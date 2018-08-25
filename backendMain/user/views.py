@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from user.models import Profile
+import re
 # from uuid import uuid4
 
 from django.contrib.auth.password_validation import validate_password
@@ -26,15 +27,16 @@ class Login(APIView):
     """
     user should login
     """
+
     def post(self, request):
         try:
             email = request.data.get('email')
             password = request.data.get('password')
             user = User.objects.get(email=email)
-            if email is None or email=="":
+            if email is None or email == "":
                 return Response({"error": "empty_email"},
-                            status=HTTP_400_BAD_REQUEST)
-            if password is None or password=="":
+                                status=HTTP_400_BAD_REQUEST)
+            if password is None or password == "":
                 return Response({"error": "empty_password"},
                                 status=HTTP_400_BAD_REQUEST)
             if not user.check_password(password):
@@ -52,9 +54,9 @@ class Login(APIView):
                 "token": token.value,
             })
         except User.DoesNotExist:
-            if email is None or email=="":
+            if email is None or email == "":
                 return Response({"error": "empty_email"},
-                            status=HTTP_400_BAD_REQUEST)
+                                status=HTTP_400_BAD_REQUEST)
             return JsonResponse({"error": "wrong_information"},
                                 status=HTTP_404_NOT_FOUND)
 
@@ -66,10 +68,17 @@ class Register(APIView):
         this should take email instead of username
         """
         email = request.data.get("email")
+        username = email
         password = request.data.get("password")
-        if email is None or email == "" or password is None or password == "":
-            return Response({'error': 'Please provide both email and password'},
+        pattern = re.compile("[^@]+@[^@]+\.[^@]+")
+        if email is None or email == "" :
+            return Response({'error': 'empty_email'},
                             status=HTTP_400_BAD_REQUEST)
+        if password is None or password == "":
+            return Response({'error': 'empty_password'},
+                            status=HTTP_400_BAD_REQUEST)
+        if not pattern.match(email):
+            return Response({'error':'bad_email'})
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
@@ -77,11 +86,11 @@ class Register(APIView):
 
         try:
             validate_password(password)
-        except :
-            return JsonResponse({"error" : "weak_password"} , status = HTTP_400_BAD_REQUEST)
+        except:
+            return JsonResponse({"error": "weak_password"}, status=HTTP_400_BAD_REQUEST)
 
         if user is None:
-            user = User(username=email, email=email)
+            user = User(username=username, email=email)
             user.set_password(password)
             user.save()
         else:
@@ -93,39 +102,43 @@ class Register(APIView):
         token = jwt_encode_handler(payload)
         return Response({'token': token})
 
+
 class ChangePassword(APIView):
     """"
        this should change the password
        """
+
     def post(self, request):
         old_password = request.data.get('old_password')
         new_password = request.data.get('new_password')
-        if old_password is None or old_password == "" or new_password is None or new_password== "":
+        if old_password is None or old_password == "" or new_password is None or new_password == "":
             return Response({"error": "empty_password"},
                             status=HTTP_400_BAD_REQUEST)
         user = request.user
         if not user.check_password(old_password):
-            return JsonResponse ( {"error": "wrong_old_password!"},
-                     status = HTTP_404_NOT_FOUND)
+            return JsonResponse({"error": "wrong_old_password!"},
+                                status=HTTP_404_NOT_FOUND)
         try:
             validate_password(new_password)
         except:
-            return JsonResponse({"error" : "weak_password"} , status = HTTP_400_BAD_REQUEST)
+            return JsonResponse({"error": "weak_password"}, status=HTTP_400_BAD_REQUEST)
         user.set_password(new_password)
         user.save()
         return JsonResponse({"status": "succeeded"})
 
 
 class ProfileInfo(APIView):
-    #TODO: more details for profile should return + profile pic
+    # TODO: more details for profile should return + profile pic
     """"
     this should show profile of user
     """
+
     def get(self, request):
         user = request.user
         profile = Profile.objects.get(user=user)
         serializer = ProfileSerializerGet(profile)
         return JsonResponse(serializer.data)
+
 
 
 class UsersViewApi(APIView):
@@ -142,12 +155,12 @@ class RegisterComplementView(APIView):
             return Response({'status': 'failed'})
         else:
             fullname = request.data.get('fullname')
-            username = request.data.get("email")
+            username = request.data.get("username")
             bio = request.data.get("bio")
             profile = Profile.objects.get(user=request.user)
             profile.fullname = fullname
-            request.user.username = username
+            profile.main_username = username
             profile.bio = bio
             profile.save()
-            request.user.save()
             return Response({'status': 'succeeded'})
+
