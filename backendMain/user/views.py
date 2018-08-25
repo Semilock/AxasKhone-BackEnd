@@ -139,6 +139,29 @@ class ProfileInfo(APIView):
         serializer = ProfileSerializerGet(profile)
         return JsonResponse(serializer.data)
 
+    """
+       this will let user change profile info
+    """
+    def post(self, request):
+        if not request.user:
+            return Response({'status': 'failed'})
+        new_username = request.data.get("username")
+        new_password = request.data.get("password")
+        new_bio = request.data.get("bio")
+        new_email = request.data.get("email")
+        new_fullname = request.data.get("fullname")
+#       todo add profile picture field for update
+        user = request.user
+        user.set_password(new_password)
+        user.email = new_email
+        user.username = new_email
+        profile = Profile.objects.get(user=user)
+        profile.fullname = new_fullname
+        profile.bio = new_bio
+        profile.main_username = new_username
+        user.save()
+        profile.save()
+        return Response({'status': 'succeeded'})
 
 
 class UsersViewApi(APIView):
