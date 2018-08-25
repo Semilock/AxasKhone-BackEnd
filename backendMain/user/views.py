@@ -16,117 +16,116 @@ from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from user.models import Profile
-from uuid import uuid4
+# from uuid import uuid4
+
+from django.contrib.auth.password_validation import validate_password
 
 
-def profile_info(request):
-    token = request.POST.get('token')
-    user = token.user
-    profile = user.profile
-    serializer = serializers.ProfileSerializerPost(profile)
-    if serializer.is_valid():
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@csrf_exempt
-@api_view(["POST"])
 @permission_classes((AllowAny,))
-def login(request):
-    try:
-        email = request.data.get('email')
-        password = request.data.get('password')
-        user = User.objects.get(email=email)
-        if email is None or email=="":
-            return Response({"error": "empty_email"},
-                        status=HTTP_400_BAD_REQUEST)
-        if password is None or password=="":
-            return Response({"error": "empty_password"},
+class Login(APIView):
+    """
+    user should login
+    """
+    def post(self, request):
+        try:
+            email = request.data.get('email')
+            password = request.data.get('password')
+            user = User.objects.get(email=email)
+            if email is None or email=="":
+                return Response({"error": "empty_email"},
                             status=HTTP_400_BAD_REQUEST)
-        if not user.check_password(password):
-            return JsonResponse({
-                "error": "wrong_information"
-            }, status=HTTP_400_BAD_REQUEST )
+            if password is None or password=="":
+                return Response({"error": "empty_password"},
+                                status=HTTP_400_BAD_REQUEST)
+            if not user.check_password(password):
+                return JsonResponse({
+                    "error": "wrong_information"
+                }, status=HTTP_404_NOT_FOUND)
 
+            jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+            jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+            payload = jwt_payload_handler(user)
+            token = jwt_encode_handler(payload)
+            return Response({'token': token})
+
+            return JsonResponse({
+                "token": token.value,
+            })
+        except User.DoesNotExist:
+            if email is None or email=="":
+                return Response({"error": "empty_email"},
+                            status=HTTP_400_BAD_REQUEST)
+            return JsonResponse({"error": "wrong_information"},
+                                status=HTTP_404_NOT_FOUND)
+
+
+@permission_classes((AllowAny,))
+class Register(APIView):
+    def post(self, request):
+        """"
+        this should take email instead of username
+        """
+        email = request.data.get("email")
+        password = request.data.get("password")
+        if email is None or email == "" or password is None or password == "":
+            return Response({'error': 'Please provide both email and password'},
+                            status=HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
+
+        try:
+            validate_password(password)
+        except :
+            return JsonResponse({"error" : "weak_password"} , status = HTTP_400_BAD_REQUEST)
+
+        if user is None:
+            user = User(username=email, email=email)
+            user.set_password(password)
+            user.save()
+        else:
+            return Response({'error': 'this email is already taken'},
+                            status=HTTP_404_NOT_FOUND)
         jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
         jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
         payload = jwt_payload_handler(user)
         token = jwt_encode_handler(payload)
         return Response({'token': token})
 
-        return JsonResponse({
-            "token": token.value,
-        })
-    except User.DoesNotExist:
-        if email is None or email=="":
-            return Response({"error": "empty_email"},
-                        status=HTTP_400_BAD_REQUEST)
-        return JsonResponse({
-            "error": "wrong_information",
-        })
-
-
-@csrf_exempt
-@api_view(["POST"])
-@permission_classes((AllowAny,))
-def register(request):
-    #TODO: we should check empty fields! work on it!
+class ChangePassword(APIView):
     """"
-    this should take email instead of username
-    """
-    email = request.data.get("email")
-    password = request.data.get("password")
-    if email is None or email == "" or password is None or password == "":
-        return Response({'error': 'Please provide both email and password'},
-                        status=HTTP_400_BAD_REQUEST)
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        user = None
-    if user is None:
-        user = User(username=email, email=email)
-        user.set_password(password)
+       this should change the password
+       """
+    def post(self, request):
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        if old_password is None or old_password == "" or new_password is None or new_password== "":
+            return Response({"error": "empty_password"},
+                            status=HTTP_400_BAD_REQUEST)
+        user = request.user
+        if not user.check_password(old_password):
+            return JsonResponse ( {"error": "wrong_old_password!"},
+                     status = HTTP_404_NOT_FOUND)
+        try:
+            validate_password(new_password)
+        except:
+            return JsonResponse({"error" : "weak_password"} , status = HTTP_400_BAD_REQUEST)
+        user.set_password(new_password)
         user.save()
-    else:
-        return Response({'error': 'this email is already taken'},
-                        status=HTTP_404_NOT_FOUND)
-    jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-    jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-    payload = jwt_payload_handler(user)
-    token = jwt_encode_handler(payload)
-    return Response({'token': token})
-
-@csrf_exempt
-@api_view(["POST"])
-def change_password(request):
-    #we should check empty fields! work on it!
-    old_password = request.data.get('old_password')
-    new_password = request.data.get('new_password')
-    if old_password is None or new_password is None:
-        return Response({'error': 'Please provide both old and new password'},
-                        status=HTTP_400_BAD_REQUEST)
-    user = request.user
-    if (not user.check_password(old_password)):
-        error = {"error": "wrong_old_password!"}
-        return JsonResponse(error)
-    user.set_password(new_password)
-    user.save()
-
-    return JsonResponse({"change_password": "done"})
+        return JsonResponse({"status": "succeeded"})
 
 
-@csrf_exempt
-@api_view(["GET"])
-def profile_info(request):
-    # more details for profile should return
+class ProfileInfo(APIView):
+    #TODO: more details for profile should return + profile pic
     """"
     this should show profile of user
     """
-    user = request.user
-    profile = Profile.objects.get(user=user)
-    serializer = ProfileSerializerGet(profile)
-    return JsonResponse(serializer.data)
-
+    def get(self, request):
+        user = request.user
+        profile = Profile.objects.get(user=user)
+        serializer = ProfileSerializerGet(profile)
+        return JsonResponse(serializer.data)
 
 
 class UsersViewApi(APIView):
