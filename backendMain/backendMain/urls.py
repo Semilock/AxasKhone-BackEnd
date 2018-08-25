@@ -11,6 +11,7 @@ router.register(r'register-complement', ProfileViewSet)
 
 urlpatterns = {
     url(r'^', include(router.urls)),
+    url(r'^', include('post.urls')),
     url(r'^user/', include('user.urls')),
     url(r'^login/', obtain_jwt_token),
     url(r'^register/', views.register),

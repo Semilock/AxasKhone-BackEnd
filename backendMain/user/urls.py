@@ -10,5 +10,5 @@ urlpatterns = {
 
     url(r'^register/', views.register, name='register'),
     # url(r'^', profilePatterns)
-    url(r'^change_password/', views.change_password, name='change_password'
+    url(r'^change_password/', views.change_password, name='change_password')
 }
