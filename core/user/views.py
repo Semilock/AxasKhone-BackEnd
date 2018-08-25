@@ -4,53 +4,56 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from delete_later.serializers import ProfileSerializerGet
+from .serializers import ProfileSerializerGet
 from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from core.user.models import Profile
+from django.http import HttpResponse
+from django.utils.translation import gettext as _
 # from uuid import uuid4
 
 from django.contrib.auth.password_validation import validate_password
 
 
-@permission_classes((AllowAny,))
-class Login(APIView):
-    """
-    user should login
-    """
-    def post(self, request):
-        try:
-            email = request.data.get('email')
-            password = request.data.get('password')
-            user = User.objects.get(email=email)
-            if email is None or email=="":
-                return Response({"error": "empty_email"},
-                            status=HTTP_400_BAD_REQUEST)
-            if password is None or password=="":
-                return Response({"error": "empty_password"},
-                                status=HTTP_400_BAD_REQUEST)
-            if not user.check_password(password):
-                return JsonResponse({
-                    "error": "wrong_information"
-                }, status=HTTP_404_NOT_FOUND)
-
-            jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-            jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-            payload = jwt_payload_handler(user)
-            token = jwt_encode_handler(payload)
-            return Response({'token': token})
-
-            return JsonResponse({
-                "token": token.value,
-            })
-        except User.DoesNotExist:
-            if email is None or email=="":
-                return Response({"error": "empty_email"},
-                            status=HTTP_400_BAD_REQUEST)
-            return JsonResponse({"error": "wrong_information"},
-                                status=HTTP_404_NOT_FOUND)
+# @permission_classes((AllowAny,))
+# class Login(APIView):
+#     """
+#     user should login
+#     """
+#     def post(self, request):
+#         try:
+#             email = request.data.get('email')
+#             password = request.data.get('password')
+#             user = User.objects.get(email=email)
+#             if email is None or email=="":
+#                 return Response({"error": "empty_email"},
+#                             status=HTTP_400_BAD_REQUEST)
+#             if password is None or password=="":
+#                 return Response({"error": "empty_password"},
+#                                 status=HTTP_400_BAD_REQUEST)
+#             if not user.check_password(password):
+#                 return JsonResponse({
+#                     "error": "wrong_information"
+#                 }, status=HTTP_404_NOT_FOUND)
+#
+#             jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+#             jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+#             payload = jwt_payload_handler(user)
+#             token = jwt_encode_handler(payload)
+#             return Response({'token': token})
+#
+#             return JsonResponse({
+#                 "token": token.value,
+#             })
+#             return Response({'status': 'succeeded'})
+#         except User.DoesNotExist:
+#             if email is None or email=="":
+#                 return Response({"error": "empty_email"},
+#                             status=HTTP_400_BAD_REQUEST)
+#             return JsonResponse({"error": "wrong_information"},
+#                                 status=HTTP_404_NOT_FOUND)
 
 
 @permission_classes((AllowAny,))
@@ -62,7 +65,7 @@ class Register(APIView):
         email = request.data.get("email")
         password = request.data.get("password")
         if email is None or email == "" or password is None or password == "":
-            return Response({'error': 'Please provide both email and password'},
+            return Response({'error': _('Please provide both email and password')},
                             status=HTTP_400_BAD_REQUEST)
         try:
             user = User.objects.get(email=email)
@@ -81,11 +84,12 @@ class Register(APIView):
         else:
             return Response({'error': 'this email is already taken'},
                             status=HTTP_404_NOT_FOUND)
-        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-        payload = jwt_payload_handler(user)
-        token = jwt_encode_handler(payload)
-        return Response({'token': token})
+        # jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        # jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        # payload = jwt_payload_handler(user)
+        # token = jwt_encode_handler(payload)
+        # return Response({'token': token})
+        return Response({'status': 'succeeded'})
 
 class ChangePassword(APIView):
     """"
@@ -120,6 +124,32 @@ class ProfileInfo(APIView):
         profile = Profile.objects.get(user=user)
         serializer = ProfileSerializerGet(profile)
         return JsonResponse(serializer.data)
+
+    """
+          this will let user change profile info
+       """
+
+    def post(self, request):
+        if not request.user:
+            return Response({'status': 'failed'})
+        new_username = request.data.get("username")
+        new_password = request.data.get("password")
+        new_bio = request.data.get("bio")
+        new_email = request.data.get("email")
+        new_fullname = request.data.get("fullname")
+        #       todo add profile picture field for update
+        # todo check validation
+        user = request.user
+        user.set_password(new_password)
+        user.email = new_email
+        user.username = new_email
+        profile = Profile.objects.get(user=user)
+        profile.fullname = new_fullname
+        profile.bio = new_bio
+        profile.main_username = new_username
+        user.save()
+        profile.save()
+        return Response({'status': 'succeeded'})
 
 
 class UsersViewApi(APIView):
