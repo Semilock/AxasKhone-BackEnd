@@ -1,5 +1,5 @@
 djangorestframework-jwt
-Django==2.1
+Django==1.11
 djangorestframework==3.8.2
 djangorestframework-simplejwt==3.2.3
 pkg-resources==0.0.0
