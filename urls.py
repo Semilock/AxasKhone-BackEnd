@@ -3,7 +3,6 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-# from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token, refresh_jwt_token
 
 # from core.user.viewSets import ProfileViewSet
 
@@ -11,8 +10,15 @@ from rest_framework import routers
 # router.register(r'register-complement', ProfileViewSet)
 from django.conf import settings
 from core.user import views
+from rest_framework.routers import DefaultRouter, SimpleRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from core.user.viewSets import ProfileViewSet
+
+router = SimpleRouter()
+router.register('user/profile_info' , ProfileViewSet)
+
+urlpatterns = router.urls
 
 urlpatterns = [
     path('', include('core.post.urls')),
