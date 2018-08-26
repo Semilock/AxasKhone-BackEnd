@@ -11,6 +11,9 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+    def perform_create(self, serializer):
+        serializer.save()
+
     # @action(methods='post', detail=True)
     # def post(self, request, *args, **kwargs):
     #     return self.create(request, *args, **kwargs)

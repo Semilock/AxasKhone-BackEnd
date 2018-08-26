@@ -1,3 +1,4 @@
+import re
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -62,21 +63,32 @@ class Register(APIView):
         """"
         this should take email instead of username
         """
+        pattern = re.compile("[^@]+@[^@]+\.[^@]+")
         email = request.data.get("email")
         password = request.data.get("password")
-        if email is None or email == "" or password is None or password == "":
-            return Response({'error': _('Please provide both email and password')},
+        fullname = request.data.get("fullname")
+        bio = request.data.get("bio")
+        username = request.data.get("username")
+        if email is None or email == "":
+            return Response({'error': 'empty_email'},
                             status=HTTP_400_BAD_REQUEST)
+        if password is None or password == "":
+            return Response({'error': 'empty_password'},
+                            status=HTTP_400_BAD_REQUEST)
+        if not pattern.match(email):
+            return Response({'error': 'bad_email'})
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = None
-
+        print(Profile.objects.filter(main_username=username).count())
+        if Profile.objects.filter(main_username=username).count() > 0:
+            return Response({'error': 'this username is already taken'},
+                            status=HTTP_404_NOT_FOUND)
         try:
             validate_password(password)
         except :
             return JsonResponse({"error" : "weak_password"} , status = HTTP_400_BAD_REQUEST)
-
         if user is None:
             user = User(username=email, email=email)
             user.set_password(password)
@@ -84,12 +96,17 @@ class Register(APIView):
         else:
             return Response({'error': 'this email is already taken'},
                             status=HTTP_404_NOT_FOUND)
+        profile = Profile.objects.get(user_id=user.id)
+        profile.fullname = fullname
+        profile.bio = bio
+        profile.main_username = username
+        profile.save()
         # jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
         # jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
         # payload = jwt_payload_handler(user)
         # token = jwt_encode_handler(payload)
         # return Response({'token': token})
-        return Response({'status': 'succeeded'})
+        return Response({'status': 'succeeded '})
 
 class ChangePassword(APIView):
     """"

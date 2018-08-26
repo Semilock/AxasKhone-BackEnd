@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -10,6 +11,6 @@ def user_directory_path(instance, filename):
 
 
 class Post(models.Model):
-    # user = models.ForeignKey(User, models.SET_NULL, blank=True, null=True)  # TODO: on_delete = ?
+    user = models.ForeignKey(User, models.SET_NULL, blank=True, null=True)  # TODO: on_delete = ?
     image = models.ImageField(upload_to=user_directory_path, null=True)  # TODO: upload_to = ? etc
     text = models.CharField(max_length=1500)
