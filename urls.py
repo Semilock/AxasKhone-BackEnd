@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
@@ -8,6 +9,7 @@ from rest_framework import routers
 
 # router = routers.DefaultRouter()
 # router.register(r'register-complement', ProfileViewSet)
+from django.conf import settings
 from core.user import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -22,4 +24,4 @@ urlpatterns = [
     url(r'^register/', views.Register.as_view()),
     # url(r'^login/', views.Login.as_view()),
     url(r'^register_complement/', views.RegisterComplementView.as_view()),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # TODO
