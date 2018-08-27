@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-25 22:07+0430\n"
+"POT-Creation-Date: 2018-08-27 10:02+0430\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,9 +18,37 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: core/user/views.py:68
-msgid "Please provide both email and password"
-msgstr "لطفا هم ایمیل و هم پسورد را وارد کنید"
+#: core/user/views.py:73
+msgid "empty_email"
+msgstr "لطفا ایمیل را وارد کنید"
+
+#: core/user/views.py:76 core/user/views.py:119
+msgid "empty_password"
+msgstr "لطفا رمزعبور را وارد کنید"
+
+#: core/user/views.py:79
+msgid "bad_email"
+msgstr "فرمت ایمیل صحیح نیست"
+
+#: core/user/views.py:86
+msgid "this username is already taken"
+msgstr "این نام کاربری قبلا استفاده شده است"
+
+#: core/user/views.py:91 core/user/views.py:128
+msgid "weak_password"
+msgstr "رمزعبور ضعیف است"
+
+#: core/user/views.py:97
+msgid "this email is already taken"
+msgstr "این ایمیل قبلا استفاده شده است"
+
+#: core/user/views.py:109 core/user/views.py:131
+msgid "succeeded"
+msgstr "عملیات موفقیت آمیز بود!"
+
+#: core/user/views.py:123
+msgid "wrong_old_password!"
+msgstr "لطفا رمزعبور قبلی را صحیح وارد کنید"
 
 #: venv/lib/python3.5/site-packages/django/contrib/messages/apps.py:7
 msgid "Messages"
@@ -1281,3 +1309,6 @@ msgstr ""
 #: venv/lib/python3.5/site-packages/rest_framework_simplejwt/tokens.py:196
 msgid "Token is blacklisted"
 msgstr ""
+
+#~ msgid "Please provide both email and password"
+#~ msgstr "لطفا هم ایمیل و هم پسورد را وارد کنید"
