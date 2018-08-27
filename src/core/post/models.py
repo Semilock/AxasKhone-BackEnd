@@ -18,5 +18,5 @@ def user_directory_path(instance, filename):
 class Post(models.Model):
     user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
     title = models.CharField(max_length=100, blank=False, null=False)  # TODO: change this?
-    image = models.ImageField(upload_to=user_directory_path, blank=False, null=False)  # TODO: upload_to = ? etc
+    image = models.ImageField(upload_to=user_directory_path, blank=False, null=True)  # TODO: upload_to = ? etc
     text = models.CharField(max_length=1500)

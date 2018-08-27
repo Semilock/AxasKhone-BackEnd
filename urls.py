@@ -14,6 +14,8 @@ from src.core.user.viewSets import ProfileViewSet
 router = SimpleRouter()
 router.register('user/profile_info', ProfileViewSet)
 
+urlpatterns = router.urls
+
 urlpatterns = [
                   path('', include('src.core.post.urls')),
                   # url(r'^', include(router.urls)),

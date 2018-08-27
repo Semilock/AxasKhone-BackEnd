@@ -70,31 +70,31 @@ class Register(APIView):
         bio = request.data.get("bio")
         username = request.data.get("username")
         if email is None or email == "":
-            return Response({'error': 'empty_email'},
+            return Response({'error': _('empty_email')},
                             status=HTTP_400_BAD_REQUEST)
         if password is None or password == "":
-            return Response({'error': 'empty_password'},
+            return Response({'error': _('empty_password')},
                             status=HTTP_400_BAD_REQUEST)
         if not pattern.match(email):
-            return Response({'error': 'bad_email'})
+            return Response({'error': _('bad_email')})
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = None
         print(Profile.objects.filter(main_username=username).count())
         if Profile.objects.filter(main_username=username).count() > 0:
-            return Response({'error': 'this username is already taken'},
+            return Response({'error': _('this username is already taken')},
                             status=HTTP_404_NOT_FOUND)
         try:
             validate_password(password)
         except :
-            return JsonResponse({"error" : "weak_password"} , status = HTTP_400_BAD_REQUEST)
+            return JsonResponse({"error" : _("weak_password")} , status = HTTP_400_BAD_REQUEST)
         if user is None:
             user = User(username=email, email=email)
             user.set_password(password)
             user.save()
         else:
-            return Response({'error': 'this email is already taken'},
+            return Response({'error': _('this email is already taken')},
                             status=HTTP_404_NOT_FOUND)
         profile = Profile.objects.get(user_id=user.id)
         profile.fullname = fullname
@@ -106,7 +106,7 @@ class Register(APIView):
         # payload = jwt_payload_handler(user)
         # token = jwt_encode_handler(payload)
         # return Response({'token': token})
-        return Response({'status': 'succeeded '})
+        return Response({'status': _('succeeded')})
 
 class ChangePassword(APIView):
     """"
@@ -116,19 +116,19 @@ class ChangePassword(APIView):
         old_password = request.data.get('old_password')
         new_password = request.data.get('new_password')
         if old_password is None or old_password == "" or new_password is None or new_password== "":
-            return Response({"error": "empty_password"},
+            return Response({"error": _("empty_password")},
                             status=HTTP_400_BAD_REQUEST)
         user = request.user
         if not user.check_password(old_password):
-            return JsonResponse ( {"error": "wrong_old_password!"},
+            return JsonResponse ( {"error": _("wrong_old_password!")},
                      status = HTTP_404_NOT_FOUND)
         try:
             validate_password(new_password)
         except:
-            return JsonResponse({"error" : "weak_password"} , status = HTTP_400_BAD_REQUEST)
+            return JsonResponse({"error" : _("weak_password")} , status = HTTP_400_BAD_REQUEST)
         user.set_password(new_password)
         user.save()
-        return JsonResponse({"status": "succeeded"})
+        return JsonResponse({"status": _("succeeded")})
 
 
 # class ProfileInfo(APIView):

@@ -148,7 +148,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-MEDIA_URL = '/media/'
+MEDIA_URL = '/'
 
 # simple JWT settings
 
