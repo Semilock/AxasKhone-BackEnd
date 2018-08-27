@@ -10,7 +10,7 @@ from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from core.user.models import Profile
+from src.core.user.models import Profile
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
 # from uuid import uuid4
