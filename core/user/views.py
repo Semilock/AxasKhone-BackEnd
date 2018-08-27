@@ -40,7 +40,7 @@ from django.contrib.auth.password_validation import validate_password
 #                 }, status=HTTP_404_NOT_FOUND)
 #
 #             jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-#             jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+#             jwtencode_handler = api_settings.JWT_ENCODE_HANDLER
 #             payload = jwt_payload_handler(user)
 #             token = jwt_encode_handler(payload)
 #             return Response({'token': token})
@@ -68,6 +68,7 @@ class Register(APIView):
         password = request.data.get("password")
         fullname = request.data.get("fullname")
         bio = request.data.get("bio")
+        image = request.data.get("image")
         username = request.data.get("username")
         if email is None or email == "":
             return Response({'error': _('empty_email')},
@@ -100,6 +101,7 @@ class Register(APIView):
         profile.fullname = fullname
         profile.bio = bio
         profile.main_username = username
+        profile.profile_pic = image
         profile.save()
         # jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
         # jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER

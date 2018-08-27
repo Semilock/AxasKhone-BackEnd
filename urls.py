@@ -23,7 +23,7 @@ urlpatterns = router.urls
 urlpatterns = [
     path('', include('core.post.urls')),
     # url(r'^', include(router.urls)),
-    # url(r'^user/', include('core.user.urls')),
+    url(r'^user/', include('core.user.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^login/', TokenObtainPairView.as_view()),
     url(r'^refresh/', TokenRefreshView.as_view()),
