@@ -1,5 +1,5 @@
 from django.db import models
-from core.user.models import User, Profile
+from src.core.user.models import User, Profile
 import time
 from os.path import splitext
 

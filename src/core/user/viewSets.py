@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.mixins import UpdateModelMixin, RetrieveModelMixin
 
-from core.user.models import Profile
+from src.core.user.models import Profile
 from .serializers import ProfileSerializerPost, ProfileSerializerGet
 
 
@@ -18,7 +18,7 @@ class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin , RetrieveModelMi
             return ProfileSerializerGet
 
 
-
-
-
-
+    
+    def retrieve(self, request, *args, **kwargs):
+        super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
+        print("Stuff")
