@@ -13,7 +13,7 @@ class ProfileSerializerPost(serializers.ModelSerializer):
     user = UserSerializer()
     class Meta:
         model = Profile
-        fields = ('fullname', 'bio', 'main_username', 'user', 'profile_picture')
+        fields = ('fullname', 'bio', 'main_username', 'user')
 
     def update(self, instance, validated_data):
         user_data = validated_data.get('user')
@@ -38,6 +38,6 @@ class ProfileSerializerGet(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields =('main_username', 'fullname', 'followers_number', 'following_number', 'bio', 'user', 'profile_picture')
-    #
+
     def get_profile_picture(self, instance):
-        return '%s%s' % (settings.SITE_URL, instance.profile_pic.url)
+        return '%s/%s' % (settings.SITE_URL, instance.profile_pic)
