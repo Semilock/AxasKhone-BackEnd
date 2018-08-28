@@ -82,7 +82,6 @@ class Register(APIView):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = None
-        print(Profile.objects.filter(main_username=username).count())
         if Profile.objects.filter(main_username=username).count() > 0:
             return Response({'error': _('this username is already taken')},
                             status=HTTP_404_NOT_FOUND)
