@@ -20,3 +20,4 @@ class Post(models.Model):
     title = models.CharField(max_length=100, blank=False, null=False)  # TODO: change this?
     image = models.ImageField(upload_to=user_directory_path, blank=False, null=True)  # TODO: upload_to = ? etc
     text = models.CharField(max_length=1500)
+    # TODO: time
