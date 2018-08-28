@@ -29,4 +29,6 @@ urlpatterns = [
     url(r'^register/', views.Register.as_view()),
     url(r'^change_password/', views.ChangePassword.as_view(), name='change_password'),
 
+                  # url(r'^login/', views.Login.as_view()),
+    # url(r'^register_complement/', views.RegisterComplementView.as_view()),
 ]+router.urls + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # TODO
