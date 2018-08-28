@@ -18,7 +18,7 @@ class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin , RetrieveModelMi
             return ProfileSerializerGet
 
 
-    
-    def retrieve(self, request, *args, **kwargs):
-        super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
-        print("Stuff")
+    #
+    # def retrieve(self, request, *args, **kwargs):
+    #     super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
+    #     print("Stuff")
