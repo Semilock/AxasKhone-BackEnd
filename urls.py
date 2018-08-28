@@ -19,8 +19,6 @@ from core.user.viewSets import ProfileViewSet
 # router = SimpleRouter()
 router.register('user/profile_info' , ProfileViewSet)
 
-# urlpatterns = router.urls
-
 urlpatterns = [
     path('', include('core.post.urls')),
     # url(r'^', include(router.urls)),
@@ -31,6 +29,4 @@ urlpatterns = [
     url(r'^register/', views.Register.as_view()),
     url(r'^change_password/', views.ChangePassword.as_view(), name='change_password'),
 
-                  # url(r'^login/', views.Login.as_view()),
-    # url(r'^register_complement/', views.RegisterComplementView.as_view()),
-]+router.urls + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) +router.urls # TODO
+]+router.urls + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # TODO

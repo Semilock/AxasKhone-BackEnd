@@ -23,7 +23,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     fullname = models.CharField(max_length=200, blank=True)
     bio = models.CharField(max_length=400, blank=True)
-    # profile_pic = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
+    profile_pic = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
     followers_number = models.IntegerField(default=0, blank=True)
     following_number = models.IntegerField(default=0, blank=True)
 

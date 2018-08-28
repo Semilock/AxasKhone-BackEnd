@@ -13,7 +13,7 @@ class ProfileSerializerPost(serializers.ModelSerializer):
     user = UserSerializer()
     class Meta:
         model = Profile
-        fields = ('fullname', 'bio', 'main_username', 'user')
+        fields = ('fullname', 'bio', 'main_username', 'user', 'profile_picture')
 
     def update(self, instance, validated_data):
         user_data = validated_data.get('user')
@@ -21,18 +21,23 @@ class ProfileSerializerPost(serializers.ModelSerializer):
         if serializer.is_valid():
             pass
 
+
         instance.main_username = validated_data.get('main_username')
+        instance.fullname = validated_data.get('fullname')
+        instance.bio = validated_data.get('bio')
+        instance.user.email = serializer.data['email']
+        instance.user.username = serializer.data['username']
         instance.save()
         return instance
 
 
 class ProfileSerializerGet(serializers.ModelSerializer):
     user = UserSerializer()
-    # profile_picture = serializers.SerializerMethodField()
+    profile_picture = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields =('main_username', 'fullname', 'followers_number', 'following_number', 'bio', 'user')
+        fields =('main_username', 'fullname', 'followers_number', 'following_number', 'bio', 'user', 'profile_picture')
     #
-    # def get_profile_picture(self, instance):
-    #     return '%s%s' % (settings.SITE_URL, instance.profile_pic.url)
+    def get_profile_picture(self, instance):
+        return '%s%s' % (settings.SITE_URL, instance.profile_pic.url)
