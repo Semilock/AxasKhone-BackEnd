@@ -16,7 +16,7 @@ class PostViewSet(mixins.CreateModelMixin,
     serializer_class = PostSerializer
 
     def get_queryset(self):
-        return Post.objects.filter(user=self.request.user)
+        return Post.objects.filter(user=self.request.user).order_by('-pk')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
