@@ -40,4 +40,6 @@ class ProfileSerializerGet(serializers.ModelSerializer):
         fields =('main_username', 'fullname', 'followers_number', 'following_number', 'bio', 'user', 'profile_picture')
 
     def get_profile_picture(self, instance):
-        return '%s/%s' % (settings.SITE_URL, instance.profile_pic)
+        if instance.profile_pic=="":
+            return ""
+        return '%s%s%s' % (settings.SITE_URL,settings.MEDIA_URL, instance.profile_pic)

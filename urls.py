@@ -20,7 +20,6 @@ from core.user.viewSets import ProfileViewSet
 router.register('profile_info' , ProfileViewSet)
 
 urlpatterns = [
-    path('', include('core.post.urls')),
     # url(r'^', include(router.urls)),
     url(r'^user/', include('core.user.urls')),
     url(r'^admin/', admin.site.urls),
