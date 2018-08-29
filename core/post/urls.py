@@ -4,6 +4,8 @@ from django.urls import path
 
 from .viewsets import PostViewSet
 
+app_name = 'post'
+
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
 router.register(r'post', PostViewSet)
