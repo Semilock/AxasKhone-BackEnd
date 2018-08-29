@@ -13,7 +13,7 @@ from os.path import splitext
 def profile_pic_directory_path(instance, filename):
     now_in_millisecs = int(round(time.time() * 1000))
     file_extension = splitext(filename)[1]
-    return 'media/profile_photos/user_{0}/{1}{2}'.format(instance.user.id,
+    return 'profile_photos/user_{0}/{1}{2}'.format(instance.user.id,
                                                  now_in_millisecs,
                                                  file_extension)
 

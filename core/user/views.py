@@ -17,7 +17,7 @@ from django.utils.translation import gettext as _
 
 from django.contrib.auth.password_validation import validate_password
 
-pattern = re.compile("[^@]+@[^@]+\.[^@]+")
+pattern = re.compile("^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$")
 
 
 # @permission_classes((AllowAny,))
@@ -184,7 +184,7 @@ class ProfileInfo(APIView):
             profile.profile_pic = new_profile_pic
         user.save()
         profile.save()
-        return Response({'status': 'succeeded'})
+        return Response({'status': _('succeeded')})
 
 
 class UsersViewApi(APIView):
@@ -198,7 +198,7 @@ class UsersViewApi(APIView):
 class RegisterComplementView(APIView):
     def post(self, request):
         if not request.user:
-            return Response({'status': 'failed'})
+            return Response({'status': _('failed')})
         else:
             fullname = request.data.get('fullname')
             username = request.data.get("username")
@@ -209,4 +209,4 @@ class RegisterComplementView(APIView):
             profile.main_username = username
             profile.save()
             request.user.save()
-            return Response({'status': 'succeeded'})
+            return Response({'status': _('succeeded')})

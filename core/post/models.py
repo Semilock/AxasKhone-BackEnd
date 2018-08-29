@@ -7,7 +7,7 @@ from os.path import splitext
 def user_directory_path(instance, filename):
     now_in_millisecs = int(round(time.time() * 1000))
     file_extension = splitext(filename)[1]
-    return 'media/images/user_{0}/{1}{2}'.format(instance.user.id,
+    return 'images/user_{0}/{1}{2}'.format(instance.user.id,
                                                  now_in_millisecs,
                                                  file_extension)
 

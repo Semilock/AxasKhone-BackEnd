@@ -151,7 +151,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 5 # TODO: change later
 }
 
-MEDIA_URL = '/'
+MEDIA_URL = '/media/'
 
 # simple JWT settings
 

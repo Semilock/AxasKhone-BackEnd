@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-27 10:02+0430\n"
+"POT-Creation-Date: 2018-08-29 10:49+0430\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,37 +18,42 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: core/user/views.py:73
+#: core/user/views.py:75
 msgid "empty_email"
 msgstr "لطفا ایمیل را وارد کنید"
 
-#: core/user/views.py:76 core/user/views.py:119
+#: core/user/views.py:78 core/user/views.py:123
 msgid "empty_password"
 msgstr "لطفا رمزعبور را وارد کنید"
 
-#: core/user/views.py:79
+#: core/user/views.py:81 core/user/views.py:172
 msgid "bad_email"
 msgstr "فرمت ایمیل صحیح نیست"
 
-#: core/user/views.py:86
+#: core/user/views.py:87 core/user/views.py:165
 msgid "this username is already taken"
 msgstr "این نام کاربری قبلا استفاده شده است"
 
-#: core/user/views.py:91 core/user/views.py:128
+#: core/user/views.py:92 core/user/views.py:132
 msgid "weak_password"
 msgstr "رمزعبور ضعیف است"
 
-#: core/user/views.py:97
+#: core/user/views.py:98 core/user/views.py:168
 msgid "this email is already taken"
 msgstr "این ایمیل قبلا استفاده شده است"
 
-#: core/user/views.py:109 core/user/views.py:131
+#: core/user/views.py:111 core/user/views.py:135 core/user/views.py:187
+#: core/user/views.py:212
 msgid "succeeded"
 msgstr "عملیات موفقیت آمیز بود!"
 
-#: core/user/views.py:123
+#: core/user/views.py:127
 msgid "wrong_old_password!"
 msgstr "لطفا رمزعبور قبلی را صحیح وارد کنید"
+
+#: core/user/views.py:201
+msgid "failed"
+msgstr "عملیات با شکست مواجه شد!"
 
 #: venv/lib/python3.5/site-packages/django/contrib/messages/apps.py:7
 msgid "Messages"
@@ -1254,7 +1259,7 @@ msgstr ""
 
 #: venv/lib/python3.5/site-packages/rest_framework_simplejwt/serializers.py:47
 msgid "No active account found with the given credentials"
-msgstr ""
+msgstr "هیچ حساب فعالی با اطلاعات وارد شده یافت نشد!"
 
 #: venv/lib/python3.5/site-packages/rest_framework_simplejwt/settings.py:55
 msgid ""
