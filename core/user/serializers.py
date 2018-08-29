@@ -42,4 +42,4 @@ class ProfileSerializerGet(serializers.ModelSerializer):
     def get_profile_picture(self, instance):
         if instance.profile_pic=="":
             return ""
-        return '%s/%s' % (settings.SITE_URL, instance.profile_pic)
+        return '%s%s%s' % (settings.SITE_URL,settings.MEDIA_URL, instance.profile_pic)
