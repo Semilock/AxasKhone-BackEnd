@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-29 10:49+0430\n"
+"POT-Creation-Date: 2018-09-01 18:28+0430\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,40 +18,44 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: core/user/views.py:75
+#: core/post/models.py:20
+msgid "File too large. Size should not exceed 2 MiB."
+msgstr "حجم تصویر وارد شده بیشتر از مقدار مجاز(یک مگابایت) است."
+
+#: core/user/views.py:69
 msgid "empty_email"
 msgstr "لطفا ایمیل را وارد کنید"
 
-#: core/user/views.py:78 core/user/views.py:123
+#: core/user/views.py:72 core/user/views.py:151
 msgid "empty_password"
 msgstr "لطفا رمزعبور را وارد کنید"
 
-#: core/user/views.py:81 core/user/views.py:172
+#: core/user/views.py:75 core/user/views.py:200
 msgid "bad_email"
 msgstr "فرمت ایمیل صحیح نیست"
 
-#: core/user/views.py:87 core/user/views.py:165
-msgid "this username is already taken"
-msgstr "این نام کاربری قبلا استفاده شده است"
-
-#: core/user/views.py:92 core/user/views.py:132
-msgid "weak_password"
-msgstr "رمزعبور ضعیف است"
-
-#: core/user/views.py:98 core/user/views.py:168
+#: core/user/views.py:81 core/user/views.py:126 core/user/views.py:196
 msgid "this email is already taken"
 msgstr "این ایمیل قبلا استفاده شده است"
 
-#: core/user/views.py:111 core/user/views.py:135 core/user/views.py:187
-#: core/user/views.py:212
+#: core/user/views.py:86 core/user/views.py:160
+msgid "weak_password"
+msgstr "رمزعبور ضعیف است"
+
+#: core/user/views.py:87 core/user/views.py:139 core/user/views.py:163
+#: core/user/views.py:215 core/user/views.py:240
 msgid "succeeded"
 msgstr "عملیات موفقیت آمیز بود!"
 
-#: core/user/views.py:127
+#: core/user/views.py:115 core/user/views.py:193
+msgid "this username is already taken"
+msgstr "این نام کاربری قبلا استفاده شده است"
+
+#: core/user/views.py:155
 msgid "wrong_old_password!"
 msgstr "لطفا رمزعبور قبلی را صحیح وارد کنید"
 
-#: core/user/views.py:201
+#: core/user/views.py:229
 msgid "failed"
 msgstr "عملیات با شکست مواجه شد!"
 

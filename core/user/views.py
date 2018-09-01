@@ -97,7 +97,7 @@ class Register(APIView):
         password = request.data.get("password")
         fullname = request.data.get("fullname")
         bio = request.data.get("bio")
-        image = request.data.get("image")
+        image = request.data.get("profile_picture")
         username = request.data.get("username")
         # if email is None or email == "":
         #     return Response({'error': _('empty_email')},
@@ -186,7 +186,7 @@ class ProfileInfo(APIView):
         new_bio = request.data.get("bio")
         new_email = request.data.get("email")
         new_fullname = request.data.get("fullname")
-        new_profile_pic = request.data.get("image")
+        new_profile_pic = request.data.get("profile_picture")
         user = request.user
         if Profile.objects.filter(main_username=new_username).count() > 0 \
                 and not Profile.objects.get(user=user).main_username==new_username:
