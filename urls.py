@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^login/', TokenObtainPairView.as_view()),
     url(r'^refresh/', TokenRefreshView.as_view()),
     url(r'^register/', views.Register.as_view()),
+    url(r'^register_validation',views.RegisterValidation.as_view())
 
                   # url(r'^login/', views.Login.as_view()),
     # url(r'^register_complement/', views.RegisterComplementView.as_view()),
