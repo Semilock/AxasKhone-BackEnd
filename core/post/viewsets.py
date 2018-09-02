@@ -5,7 +5,6 @@ from rest_framework.viewsets import GenericViewSet
 from .models import Post
 from .serializers import PostSerializer
 
-
 class PostViewSet(mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
                   # mixins.UpdateModelMixin,

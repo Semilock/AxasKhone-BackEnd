@@ -79,7 +79,7 @@ class RegisterValidation(APIView):
             user = None
         if user is not None:
             return Response({'error': _('this email is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         try:
             validate_password(password)
         except:
@@ -113,7 +113,7 @@ class Register(APIView):
             user = None
         if Profile.objects.filter(main_username=username).count() > 0:
             return Response({'error': _('this username is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         # try:
         #     validate_password(password)
         # except:
@@ -124,7 +124,7 @@ class Register(APIView):
             user.save()
         else:
             return Response({'error': _('this email is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         profile = Profile.objects.get(user_id=user.id)
         profile.fullname = fullname
         profile.bio = bio
@@ -153,7 +153,7 @@ class ChangePassword(APIView):
         user = request.user
         if not user.check_password(old_password):
             return JsonResponse({"error": _("wrong_old_password!")},
-                                status=HTTP_404_NOT_FOUND)
+                                status=HTTP_400_BAD_REQUEST)
         try:
             validate_password(new_password)
         except:
@@ -191,14 +191,14 @@ class ProfileInfo(APIView):
         if Profile.objects.filter(main_username=new_username).count() > 0 \
                 and not Profile.objects.get(user=user).main_username==new_username:
             return Response({'error': _('this username is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         elif User.objects.filter(email=new_email).count() > 0 and not user.email == new_email:
             return Response({'error': _('this email is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         if not new_email is None:
             if not pattern.match(new_email):
                 return Response({'error': _('bad_email')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
             user.email = new_email
             user.username = new_email
         profile = Profile.objects.get(user=user)

@@ -31,3 +31,5 @@ class Post(models.Model):
                               validators=[validate_size])  # TODO: upload_to = ? etc
     caption = models.CharField(max_length=1500)
     # TODO: time
+
+
