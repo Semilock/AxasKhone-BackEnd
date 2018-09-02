@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-01 18:28+0430\n"
+"POT-Creation-Date: 2018-09-02 15:18+0430\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,40 +22,48 @@ msgstr ""
 msgid "File too large. Size should not exceed 2 MiB."
 msgstr "حجم تصویر وارد شده بیشتر از مقدار مجاز(یک مگابایت) است."
 
-#: core/user/views.py:69
+#: core/user/views.py:70
 msgid "empty_email"
 msgstr "لطفا ایمیل را وارد کنید"
 
-#: core/user/views.py:72 core/user/views.py:151
+#: core/user/views.py:73 core/user/views.py:158
 msgid "empty_password"
 msgstr "لطفا رمزعبور را وارد کنید"
 
-#: core/user/views.py:75 core/user/views.py:200
+#: core/user/views.py:76 core/user/views.py:207
 msgid "bad_email"
 msgstr "فرمت ایمیل صحیح نیست"
 
-#: core/user/views.py:81 core/user/views.py:126 core/user/views.py:196
+#: core/user/views.py:82 core/user/views.py:133 core/user/views.py:203
 msgid "this email is already taken"
 msgstr "این ایمیل قبلا استفاده شده است"
 
-#: core/user/views.py:86 core/user/views.py:160
+#: core/user/views.py:87 core/user/views.py:167
 msgid "weak_password"
 msgstr "رمزعبور ضعیف است"
 
-#: core/user/views.py:87 core/user/views.py:139 core/user/views.py:163
-#: core/user/views.py:215 core/user/views.py:240
+#: core/user/views.py:88 core/user/views.py:146 core/user/views.py:170
+#: core/user/views.py:222 core/user/views.py:247
 msgid "succeeded"
 msgstr "عملیات موفقیت آمیز بود!"
 
-#: core/user/views.py:115 core/user/views.py:193
+#: core/user/views.py:104
+msgid "please enter username"
+msgstr "نام کاربری را وارد کنید"
+
+#: core/user/views.py:106 core/user/views.py:108
+msgid "bad username"
+msgstr "فرمت نام کاربری صحیح نمی باشد"
+
+#: core/user/views.py:122 core/user/views.py:200
 msgid "this username is already taken"
 msgstr "این نام کاربری قبلا استفاده شده است"
 
-#: core/user/views.py:155
+#: core/user/views.py:162
 msgid "wrong_old_password!"
 msgstr "لطفا رمزعبور قبلی را صحیح وارد کنید"
 
-#: core/user/views.py:229
+#: core/user/views.py:236
 msgid "failed"
 msgstr "عملیات با شکست مواجه شد!"
 
@@ -514,7 +522,7 @@ msgstr ""
 
 #: venv/lib/python3.5/site-packages/django/forms/fields.py:534
 msgid "No file was submitted."
-msgstr ""
+msgstr "هیچ عکسی انتخاب نشده است!"
 
 #: venv/lib/python3.5/site-packages/django/forms/fields.py:535
 msgid "The submitted file is empty."
