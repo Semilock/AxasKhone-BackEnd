@@ -18,7 +18,8 @@ from django.utils.translation import gettext as _
 
 from django.contrib.auth.password_validation import validate_password
 
-pattern = re.compile("^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$")
+email_pattern = re.compile("^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$")
+username_pattern = re.compile("^[a-zA-Z][a-zA-Z.]+|[a-zA-Z_]+")
 
 
 # @permission_classes((AllowAny,))
@@ -72,7 +73,7 @@ class RegisterValidation(APIView):
         if password is None or password == "":
             return Response({'error': _('empty_password')},
                             status=HTTP_400_BAD_REQUEST)
-        if not pattern.match(email):
+        if not email_pattern.match(email):
             return Response({'error': _('bad_email')})
         try:
             user = User.objects.get(email=email)
@@ -100,6 +101,12 @@ class Register(APIView):
         bio = request.data.get("bio")
         image = request.data.get("profile_picture")
         username = request.data.get("username")
+        if username is None or username=="":
+            return JsonResponse({"error": _("please enter username")}, status=HTTP_400_BAD_REQUEST)
+        if not username_pattern.match(username):
+            return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
+        if len(username)<5:
+            return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
         # if email is None or email == "":
         #     return Response({'error': _('empty_email')},
         #                     status=HTTP_400_BAD_REQUEST)
@@ -197,7 +204,7 @@ class ProfileInfo(APIView):
             return Response({'error': _('this email is already taken')},
                             status=HTTP_400_BAD_REQUEST)
         if not new_email is None:
-            if not pattern.match(new_email):
+            if not email_pattern.match(new_email):
                 return Response({'error': _('bad_email')},
                             status=HTTP_400_BAD_REQUEST)
             user.email = new_email
