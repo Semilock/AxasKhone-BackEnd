@@ -59,18 +59,12 @@ pattern = re.compile("^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$")
 #                                 status=HTTP_404_NOT_FOUND)
 
 
+
 @permission_classes((AllowAny,))
-class Register(APIView):
+class RegisterValidation(APIView):
     def post(self, request):
-        """"
-        this should take email instead of username
-        """
         email = request.data.get("email")
         password = request.data.get("password")
-        fullname = request.data.get("fullname")
-        bio = request.data.get("bio")
-        image = request.data.get("image")
-        username = request.data.get("username")
         if email is None or email == "":
             return Response({'error': _('empty_email')},
                             status=HTTP_400_BAD_REQUEST)
@@ -83,13 +77,47 @@ class Register(APIView):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = None
-        if Profile.objects.filter(main_username=username).count() > 0:
-            return Response({'error': _('this username is already taken')},
+        if user is not None:
+            return Response({'error': _('this email is already taken')},
                             status=HTTP_404_NOT_FOUND)
         try:
             validate_password(password)
         except:
             return JsonResponse({"error": _("weak_password")}, status=HTTP_400_BAD_REQUEST)
+        return Response({'status' : _('succeeded')})
+
+
+@permission_classes((AllowAny,))
+class Register(APIView):
+    def post(self, request):
+        """"
+        this should take email instead of username
+        """
+        email = request.data.get("email")
+        password = request.data.get("password")
+        fullname = request.data.get("fullname")
+        bio = request.data.get("bio")
+        image = request.data.get("profile_picture")
+        username = request.data.get("username")
+        # if email is None or email == "":
+        #     return Response({'error': _('empty_email')},
+        #                     status=HTTP_400_BAD_REQUEST)
+        # if password is None or password == "":
+        #     return Response({'error': _('empty_password')},
+        #                     status=HTTP_400_BAD_REQUEST)
+        # if not pattern.match(email):
+        #     return Response({'error': _('bad_email')})
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
+        if Profile.objects.filter(main_username=username).count() > 0:
+            return Response({'error': _('this username is already taken')},
+                            status=HTTP_404_NOT_FOUND)
+        # try:
+        #     validate_password(password)
+        # except:
+        #     return JsonResponse({"error": _("weak_password")}, status=HTTP_400_BAD_REQUEST)
         if user is None:
             user = User(username=email, email=email)
             user.set_password(password)
@@ -158,7 +186,7 @@ class ProfileInfo(APIView):
         new_bio = request.data.get("bio")
         new_email = request.data.get("email")
         new_fullname = request.data.get("fullname")
-        new_profile_pic = request.data.get("image")
+        new_profile_pic = request.data.get("profile_picture")
         user = request.user
         if Profile.objects.filter(main_username=new_username).count() > 0 \
                 and not Profile.objects.get(user=user).main_username==new_username:
