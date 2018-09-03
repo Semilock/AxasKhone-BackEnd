@@ -29,9 +29,10 @@ class Profile(models.Model):
     profile_pic = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
     followers_number = models.IntegerField(default=0, blank=True)
     following_number = models.IntegerField(default=0, blank=True)
+    is_public = models.BooleanField(default=True, blank=True)
 
-    # created_at = models.DateTimeField(default=datetime.now, blank=True)
-    # modified_at = models.DateTimeField(default=datetime.now, blank=True)
+    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    modified_at = models.DateTimeField(default=datetime.now, blank=True)
 
 
 @receiver(post_save, sender=User)
@@ -48,6 +49,17 @@ def save_user_profile(sender, instance, **kwargs):
 class UserFollow(models.Model):
     source = models.ForeignKey(User, related_name='followings', on_delete=models.CASCADE)
     destination = models.ForeignKey(User, related_name = 'followers', on_delete=models.CASCADE)
+
+    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    class Meta:
+        index_together = [
+            ('source', 'created_at'),
+            ('destination', 'created_at'),
+        ]
+
+class UserFollowRequest(models.Model):
+    source = models.ForeignKey(User, related_name='sender', on_delete=models.CASCADE)
+    destination = models.ForeignKey(User, related_name = 'reciver', on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     class Meta:
