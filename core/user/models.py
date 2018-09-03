@@ -3,13 +3,16 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import models
-from core.user.models import User
 import time
 from os.path import splitext
 
-
 # TODO: followers and following list should add
 # TODO: profile pic should add to profile info
+from django.utils.datetime_safe import datetime
+
+# from core.user import serializers
+
+
 def profile_pic_directory_path(instance, filename):
     now_in_millisecs = int(round(time.time() * 1000))
     file_extension = splitext(filename)[1]
@@ -27,6 +30,9 @@ class Profile(models.Model):
     followers_number = models.IntegerField(default=0, blank=True)
     following_number = models.IntegerField(default=0, blank=True)
 
+    # created_at = models.DateTimeField(default=datetime.now, blank=True)
+    # modified_at = models.DateTimeField(default=datetime.now, blank=True)
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -37,3 +43,15 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
+
+
+class UserFollow(models.Model):
+    source = models.ForeignKey(User, related_name='followings', on_delete=models.CASCADE)
+    destination = models.ForeignKey(User, related_name = 'followers', on_delete=models.CASCADE)
+
+    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    class Meta:
+        index_together = [
+            ('source', 'created_at'),
+            ('destination', 'created_at'),
+        ]

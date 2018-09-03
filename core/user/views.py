@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from .serializers import ProfileSerializerGet
+from core.user.models import UserFollow
+from .serializers import ProfileSerializerGet, UserSerializer
 from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
@@ -245,3 +246,26 @@ class RegisterComplementView(APIView):
             profile.save()
             request.user.save()
             return Response({'status': _('succeeded')})
+
+
+class InviteFriends(APIView):
+    def post(self, request):
+        # x= User.objects.get(username = "m@gmail.com")
+        # UserFollow.objects.create(source = x , destination = x)
+        if not request.user:
+            return JsonResponse({'status': 'failed'})
+        contacts=[]
+        contact_list = request.data.get('contact_list')
+        for contact in contact_list:
+            # print(contact.email + '/n')
+            contact_user = User.objects.filter(email=contact["email"]).first()
+            serializer = {
+                "contact_email": contact["email"], "contact.name": contact["name"]
+            }
+            if contact_user is not None:
+                contact_profile = Profile.objects.get(user=contact_user)
+                user = UserSerializer(contact_user).data
+                serializer['contact_username'] = contact_profile.main_username
+                serializer['contact_is_follow'] = user["is_follow"]
+            contacts.append(serializer)
+        return JsonResponse({"contacts" :contacts})
