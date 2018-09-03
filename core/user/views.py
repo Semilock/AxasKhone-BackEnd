@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
-from .serializers import ProfileSerializerGet
+from core.user.models import UserFollow
+from .serializers import ProfileSerializerGet, UserSerializer
 from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
@@ -17,7 +18,8 @@ from django.utils.translation import gettext as _
 
 from django.contrib.auth.password_validation import validate_password
 
-pattern = re.compile("^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$")
+email_pattern = re.compile("^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$")
+username_pattern = re.compile("^[a-zA-Z][a-zA-Z.]+|[a-zA-Z_]+")
 
 
 # @permission_classes((AllowAny,))
@@ -71,7 +73,7 @@ class RegisterValidation(APIView):
         if password is None or password == "":
             return Response({'error': _('empty_password')},
                             status=HTTP_400_BAD_REQUEST)
-        if not pattern.match(email):
+        if not email_pattern.match(email):
             return Response({'error': _('bad_email')})
         try:
             user = User.objects.get(email=email)
@@ -79,7 +81,7 @@ class RegisterValidation(APIView):
             user = None
         if user is not None:
             return Response({'error': _('this email is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         try:
             validate_password(password)
         except:
@@ -93,12 +95,18 @@ class Register(APIView):
         """"
         this should take email instead of username
         """
-        email = request.data.get("email")
-        password = request.data.get("password")
-        fullname = request.data.get("fullname")
-        bio = request.data.get("bio")
-        image = request.data.get("profile_picture")
-        username = request.data.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        fullname = request.POST.get("fullname")
+        bio = request.POST.get("bio")
+        image = request.FILES.get("profile_picture")
+        username = request.POST.get("username")
+        if username is None or username=="":
+            return JsonResponse({"error": _("please enter username")}, status=HTTP_400_BAD_REQUEST)
+        if not username_pattern.match(username):
+            return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
+        if len(username)<5:
+            return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
         # if email is None or email == "":
         #     return Response({'error': _('empty_email')},
         #                     status=HTTP_400_BAD_REQUEST)
@@ -113,7 +121,7 @@ class Register(APIView):
             user = None
         if Profile.objects.filter(main_username=username).count() > 0:
             return Response({'error': _('this username is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         # try:
         #     validate_password(password)
         # except:
@@ -124,7 +132,7 @@ class Register(APIView):
             user.save()
         else:
             return Response({'error': _('this email is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         profile = Profile.objects.get(user_id=user.id)
         profile.fullname = fullname
         profile.bio = bio
@@ -153,7 +161,7 @@ class ChangePassword(APIView):
         user = request.user
         if not user.check_password(old_password):
             return JsonResponse({"error": _("wrong_old_password!")},
-                                status=HTTP_404_NOT_FOUND)
+                                status=HTTP_400_BAD_REQUEST)
         try:
             validate_password(new_password)
         except:
@@ -191,14 +199,14 @@ class ProfileInfo(APIView):
         if Profile.objects.filter(main_username=new_username).count() > 0 \
                 and not Profile.objects.get(user=user).main_username==new_username:
             return Response({'error': _('this username is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         elif User.objects.filter(email=new_email).count() > 0 and not user.email == new_email:
             return Response({'error': _('this email is already taken')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
         if not new_email is None:
-            if not pattern.match(new_email):
+            if not email_pattern.match(new_email):
                 return Response({'error': _('bad_email')},
-                            status=HTTP_404_NOT_FOUND)
+                            status=HTTP_400_BAD_REQUEST)
             user.email = new_email
             user.username = new_email
         profile = Profile.objects.get(user=user)
@@ -238,3 +246,26 @@ class RegisterComplementView(APIView):
             profile.save()
             request.user.save()
             return Response({'status': _('succeeded')})
+
+
+class InviteFriends(APIView):
+    def post(self, request):
+        # x= User.objects.get(username = "m@gmail.com")
+        # UserFollow.objects.create(source = x , destination = x)
+        if not request.user:
+            return JsonResponse({'status': 'failed'})
+        contacts=[]
+        contact_list = request.data.get('contact_list')
+        for contact in contact_list:
+            # print(contact.email + '/n')
+            contact_user = User.objects.filter(email=contact["email"]).first()
+            serializer = {
+                "contact_email": contact["email"], "contact.name": contact["name"]
+            }
+            if contact_user is not None:
+                contact_profile = Profile.objects.get(user=contact_user)
+                user = UserSerializer(contact_user).data
+                serializer['contact_username'] = contact_profile.main_username
+                serializer['contact_is_follow'] = user["is_follow"]
+            contacts.append(serializer)
+        return JsonResponse({"contacts" :contacts})
