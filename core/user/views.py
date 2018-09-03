@@ -94,12 +94,12 @@ class Register(APIView):
         """"
         this should take email instead of username
         """
-        email = request.data.get("email")
-        password = request.data.get("password")
-        fullname = request.data.get("fullname")
-        bio = request.data.get("bio")
-        image = request.data.get("profile_picture")
-        username = request.data.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        fullname = request.POST.get("fullname")
+        bio = request.POST.get("bio")
+        image = request.FILES.get("profile_picture")
+        username = request.POST.get("username")
         if username is None or username=="":
             return JsonResponse({"error": _("please enter username")}, status=HTTP_400_BAD_REQUEST)
         if not username_pattern.match(username):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-02 15:18+0430\n"
+"POT-Creation-Date: 2018-09-02 16:26+0430\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,6 +21,15 @@ msgstr ""
 #: core/post/models.py:20
 msgid "File too large. Size should not exceed 2 MiB."
 msgstr "حجم تصویر وارد شده بیشتر از مقدار مجاز(یک مگابایت) است."
+
+#: core/post/views.py:18
+msgid "you can not add other users posts to your favorites"
+msgstr "شما مجاز به افزودن پست کاربران دیگر به لیست علاقه مندی های خود نیستید!"
+
+#: core/post/views.py:22 core/user/views.py:88 core/user/views.py:146
+#: core/user/views.py:170 core/user/views.py:222 core/user/views.py:247
+msgid "succeeded"
+msgstr "عملیات موفقیت آمیز بود!"
 
 #: core/user/views.py:70
 msgid "empty_email"
@@ -41,11 +50,6 @@ msgstr "این ایمیل قبلا استفاده شده است"
 #: core/user/views.py:87 core/user/views.py:167
 msgid "weak_password"
 msgstr "رمزعبور ضعیف است"
-
-#: core/user/views.py:88 core/user/views.py:146 core/user/views.py:170
-#: core/user/views.py:222 core/user/views.py:247
-msgid "succeeded"
-msgstr "عملیات موفقیت آمیز بود!"
 
 #: core/user/views.py:104
 msgid "please enter username"
