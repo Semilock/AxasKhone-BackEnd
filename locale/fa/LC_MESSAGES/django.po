@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-02 16:26+0430\n"
+"POT-Creation-Date: 2018-09-03 11:39+0430\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,48 +26,48 @@ msgstr "حجم تصویر وارد شده بیشتر از مقدار مجاز(ی
 msgid "you can not add other users posts to your favorites"
 msgstr "شما مجاز به افزودن پست کاربران دیگر به لیست علاقه مندی های خود نیستید!"
 
-#: core/post/views.py:22 core/user/views.py:88 core/user/views.py:146
-#: core/user/views.py:170 core/user/views.py:222 core/user/views.py:247
+#: core/post/views.py:22 core/user/views.py:89 core/user/views.py:147
+#: core/user/views.py:171 core/user/views.py:223 core/user/views.py:248
 msgid "succeeded"
 msgstr "عملیات موفقیت آمیز بود!"
 
-#: core/user/views.py:70
+#: core/user/views.py:71
 msgid "empty_email"
 msgstr "لطفا ایمیل را وارد کنید"
 
-#: core/user/views.py:73 core/user/views.py:158
+#: core/user/views.py:74 core/user/views.py:159
 msgid "empty_password"
 msgstr "لطفا رمزعبور را وارد کنید"
 
-#: core/user/views.py:76 core/user/views.py:207
+#: core/user/views.py:77 core/user/views.py:208
 msgid "bad_email"
 msgstr "فرمت ایمیل صحیح نیست"
 
-#: core/user/views.py:82 core/user/views.py:133 core/user/views.py:203
+#: core/user/views.py:83 core/user/views.py:134 core/user/views.py:204
 msgid "this email is already taken"
 msgstr "این ایمیل قبلا استفاده شده است"
 
-#: core/user/views.py:87 core/user/views.py:167
+#: core/user/views.py:88 core/user/views.py:168
 msgid "weak_password"
 msgstr "رمزعبور ضعیف است"
 
-#: core/user/views.py:104
+#: core/user/views.py:105
 msgid "please enter username"
 msgstr "نام کاربری را وارد کنید"
 
-#: core/user/views.py:106 core/user/views.py:108
+#: core/user/views.py:107 core/user/views.py:109
 msgid "bad username"
 msgstr "فرمت نام کاربری صحیح نمی باشد"
 
-#: core/user/views.py:122 core/user/views.py:200
+#: core/user/views.py:123 core/user/views.py:201
 msgid "this username is already taken"
 msgstr "این نام کاربری قبلا استفاده شده است"
 
-#: core/user/views.py:162
+#: core/user/views.py:163
 msgid "wrong_old_password!"
 msgstr "لطفا رمزعبور قبلی را صحیح وارد کنید"
 
-#: core/user/views.py:236
+#: core/user/views.py:237
 msgid "failed"
 msgstr "عملیات با شکست مواجه شد!"
 

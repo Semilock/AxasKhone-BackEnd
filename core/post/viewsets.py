@@ -2,12 +2,13 @@ from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.viewsets import GenericViewSet
 
-from .models import Post
+from .models import Post, Favorite
 from .serializers import PostSerializer
+
 
 class PostViewSet(mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
-                  # mixins.UpdateModelMixin,
+                  mixins.UpdateModelMixin,
                   # mixins.DestroyModelMixin,
                   mixins.ListModelMixin,
                   GenericViewSet):
@@ -23,3 +24,13 @@ class PostViewSet(mixins.CreateModelMixin,
     # @action(methods='post', detail=True)
     # def post(self, request, *args, **kwargs):
     #     return self.create(request, *args, **kwargs)
+
+
+# class FavoriteViewSet(mixins.CreateModelMixin,
+#                       mixins.ListModelMixin,
+#                       GenericViewSet):
+#     queryset = Favorite.objects.all()
+#     serializer_class = FavoriteSerializer(many=True)
+#
+#     def get_queryset(self):
+#         return Favorite.objects.filter(posts__user=self.request.user)
