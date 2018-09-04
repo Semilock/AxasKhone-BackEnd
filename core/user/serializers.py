@@ -69,10 +69,3 @@ class ProfileSerializer(serializers.ModelSerializer):
 #         if instance.profile_picture=="":
 #             return ""
 #         return '%s%s%s' % (settings.SITE_URL,settings.MEDIA_URL, instance.profile_picture)
-
-
-class UserFollowerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserFollow
-        fields =('source', )
-
