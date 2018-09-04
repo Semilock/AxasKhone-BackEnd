@@ -18,6 +18,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     follower_number = serializers.SerializerMethodField()
     following_number = serializers.SerializerMethodField()
     profile_picture = serializers.SerializerMethodField()
+
     # user = UserSerializer()
     class Meta:
         model = Profile
@@ -69,9 +70,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 #             return ""
 #         return '%s%s%s' % (settings.SITE_URL,settings.MEDIA_URL, instance.profile_picture)
 
-# class UserFollowerSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = UserFollow
-#         fields =('source')
+
+class UserFollowerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFollow
+        fields =('source', )
 

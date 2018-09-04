@@ -22,7 +22,7 @@ def profile_pic_directory_path(instance, filename):
 
 
 class Profile(models.Model):
-    main_username = models.CharField(max_length=200, blank=True)
+    main_username = models.CharField(max_length=200, blank=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     fullname = models.CharField(max_length=200, blank=True)
     bio = models.CharField(max_length=400, blank=True)

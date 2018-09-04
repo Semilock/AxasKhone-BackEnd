@@ -174,6 +174,6 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=1000),  # TODO: change this later!!!!
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=15),  # TODO: change this later!!!!
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),  # TODO: change this later!!!!
 }

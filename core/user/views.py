@@ -2,6 +2,8 @@
 #TODO:TEST GET , POST PROFILE SERIALIZER
 #TODO: email for profile serializer post
 import re
+
+from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -289,7 +291,7 @@ class Accept(APIView):
         else:
             return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
 
-class FollowerList(APIView):
+class FollowerList(generics.ListCreateAPIView):
     def get(self, request):
         follower_list=[]
         followers = UserFollow.objects.filter(destination= request.user.profile)

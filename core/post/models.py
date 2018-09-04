@@ -9,7 +9,7 @@ from django.utils.translation import gettext as _
 def user_directory_path(instance, filename):
     now_in_millisecs = int(round(time.time() * 1000))
     file_extension = splitext(filename)[1]
-    return 'images/user_{0}/{1}{2}'.format(instance.user.id,
+    return 'images/user_{0}/{1}{2}'.format(instance.profile.id,
                                            now_in_millisecs,
                                            file_extension)
 
@@ -25,7 +25,8 @@ def validate_size(value):  # add this to some file where you can import it from
 
 
 class Post(models.Model):
-    user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
+ #   user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, blank=True, null=False, on_delete=models.CASCADE)
     # title = models.CharField(max_length=100, blank=False, null=False)  # TODO: change this?
     image = models.ImageField(upload_to=user_directory_path, blank=False, null=True,
                               validators=[validate_size])  # TODO: upload_to = ? etc
