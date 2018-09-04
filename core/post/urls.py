@@ -2,13 +2,16 @@ from django.conf.urls import url, include
 from rest_framework import routers
 from django.urls import path
 
-from .viewsets import PostViewSet
+from .viewsets import PostViewSet, FavoriteViewSet
 
 app_name = 'post'
 
 # Routers provide an easy way of automatically determining the URL conf.
-router = routers.DefaultRouter()
-router.register(r'post', PostViewSet)
+post_router = routers.DefaultRouter()
+post_router.register(r'post', PostViewSet)
+
+favarite_router = routers.DefaultRouter()
+favarite_router.register(r'favorites', FavoriteViewSet)
 #
 # urlpatterns = [
 #     url(r'^', include(router.urls)),
@@ -16,7 +19,8 @@ router.register(r'post', PostViewSet)
 # ]
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('', include(post_router.urls)),
+    path('', include(favarite_router.urls))
 
     # path(
     #     '',
