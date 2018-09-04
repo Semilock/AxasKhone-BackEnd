@@ -1,3 +1,6 @@
+#TODO: context to all Profile serializers
+#TODO:TEST GET , POST PROFILE SERIALIZER
+#TODO: email for profile serializer post
 import re
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
@@ -7,7 +10,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 
 from core.user.models import UserFollow, UserFollowRequest
 
-from .serializers import ProfileSerializerGet, UserSerializer
+from .serializers import ProfileSerializer
 from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
@@ -138,7 +141,7 @@ class Register(APIView):
         profile.fullname = fullname
         profile.bio = bio
         profile.main_username = username
-        profile.profile_pic = image
+        profile.profile_picture = image
         profile.save()
         # jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
         # jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -173,7 +176,6 @@ class ChangePassword(APIView):
 
 
 class ProfileInfo(APIView):
-    # TODO: more details for profile should return + profile pic
     """"
     this should show profile of user
     """
@@ -181,21 +183,19 @@ class ProfileInfo(APIView):
     def get(self, request):
         user = request.user
         profile = Profile.objects.get(user=user)
-        serializer = ProfileSerializerGet(profile)
-        return JsonResponse(serializer.data)
+        serializer = ProfileSerializer(profile,context={'request': request}).data
+        return JsonResponse(serializer)
 
     """
           this will let user change profile info
        """
 
     def post(self, request):
-        if not request.user:
-            return Response({'status': 'failed'})
         new_username = request.data.get("username")
         new_bio = request.data.get("bio")
         new_email = request.data.get("email")
         new_fullname = request.data.get("fullname")
-        new_profile_pic = request.data.get("profile_picture")
+        new_profile_picture = request.data.get("profile_picture")
         user = request.user
         if Profile.objects.filter(main_username=new_username).count() > 0 \
                 and not Profile.objects.get(user=user).main_username==new_username:
@@ -217,8 +217,8 @@ class ProfileInfo(APIView):
             profile.bio = new_bio
         if not new_username is None:
             profile.main_username = new_username
-        if not new_profile_pic is None:
-            profile.profile_pic = new_profile_pic
+        if not new_profile_picture is None:
+            profile.profile_picture = new_profile_picture
         user.save()
         profile.save()
         return Response({'status': _('succeeded')})
@@ -236,54 +236,73 @@ class RegisterComplementView(APIView):
     def post(self, request):
         if not request.user:
             return Response({'error': _('failed_user')})
-        else:
-            fullname = request.data.get('fullname')
-            username = request.data.get("username")
-            bio = request.data.get("bio")
-            profile = Profile.objects.get(user=request.user)
-            profile.fullname = fullname
-            profile.bio = bio
-            profile.main_username = username
-            profile.save()
-            request.user.save()
-            return Response({'status': _('succeeded')})
+        fullname = request.data.get('fullname')
+        username = request.data.get("username")
+        bio = request.data.get("bio")
+        profile = Profile.objects.get(user=request.user)
+        profile.fullname = fullname
+        profile.bio = bio
+        profile.main_username = username
+        profile.save()
+        request.user.save()
+        return Response({'status': _('succeeded')})
 
 
 class InviteFriends(APIView):
     def post(self, request):
-        if not request.user:
-            return JsonResponse({'error': 'failed_user'})
         contacts=[]
         contact_list = request.data.get('contact_list')
         for contact in contact_list:
             serializer = {
                 "contact_email": contact["email"], "contact.name": contact["name"]
             }
-            contact_user = User.objects.filter(email=contact["email"]).first()
+            contact_user = Profile.objects.filter(user__email=contact["email"]).first()
             if contact_user is not None:
-                contact_profile = Profile.objects.filter(user=contact_user).first()
-                user = UserSerializer(contact_user).data
-                serializer['contact_is_follow'] = user["is_follow"]
-                if contact_profile is not None:
-                    serializer['contact_username'] = contact_profile.main_username
+                serializer['user'] = ProfileSerializer(contact_user, context={'request': request}).data
             contacts.append(serializer)
         return JsonResponse({"contacts" :contacts})
 
 class Follow(APIView):
     def post (self , request):
-        if not request.user:
-            return JsonResponse({'error': 'failed'})
-        source= request.user
+        source= request.user.profile
         destination_username = request.data.get('username')
-        destination_profile = Profile.objects.filter(main_username = destination_username).first()
-        if destination_profile is None:
-            return JsonResponse({"error": "user_not_find"})
-        destination = User.objects.get(profile = destination_profile)
-        if(destination_profile.is_public):
+        destination = Profile.objects.filter(main_username = destination_username).first()
+        if destination is None:
+            return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
+        if(destination.is_public):
             UserFollow.objects.create(source = source , destination = destination)
             return JsonResponse({"status": "done"})
-
         else:
             UserFollowRequest.objects.create(source = source , destination = destination)
-            return JsonResponse({"statuas": "follow_request"})
+            return JsonResponse({"statuas": "follow_request_sent"})
 
+class Accept(APIView):
+    def post(self, request):
+        destination = request.user.profile
+        source_username = request.data.get('username')
+        source = Profile.objects.filter(main_username=source_username).first()
+        if source is None:
+            return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
+        if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
+            UserFollow.objects.create(source=source, destination=destination)
+            return JsonResponse({"status": "done"})
+        else:
+            return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
+
+class FollowerList(APIView):
+    def get(self, request):
+        follower_list=[]
+        followers = UserFollow.objects.filter(destination= request.user.profile)
+        for follower in followers:
+            follower_profile = ProfileSerializer(follower.source,  context={'request': request} ).data
+            follower_list.append(follower_profile)
+        return JsonResponse({"follower_list":follower_list})
+
+class FollowingList(APIView):
+    def get(self, request):
+        following_list=[]
+        followings = UserFollow.objects.filter(source= request.user.profile)
+        for following in followings:
+            following_profile = ProfileSerializer(following.destination,  context={'request': request} ).data
+            following_list.append(following_profile)
+        return JsonResponse({"following_list":following_list})

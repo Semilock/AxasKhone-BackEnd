@@ -26,9 +26,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     fullname = models.CharField(max_length=200, blank=True)
     bio = models.CharField(max_length=400, blank=True)
-    profile_pic = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
-    followers_number = models.IntegerField(default=0, blank=True)
-    following_number = models.IntegerField(default=0, blank=True)
+    profile_picture = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
     is_public = models.BooleanField(default=True, blank=True)
 
     created_at = models.DateTimeField(default=datetime.now, blank=True)
@@ -47,8 +45,8 @@ def save_user_profile(sender, instance, **kwargs):
 
 
 class UserFollow(models.Model):
-    source = models.ForeignKey(User, related_name='followings', on_delete=models.CASCADE)
-    destination = models.ForeignKey(User, related_name = 'followers', on_delete=models.CASCADE)
+    source = models.ForeignKey(Profile, related_name='followings', on_delete=models.CASCADE)
+    destination = models.ForeignKey(Profile, related_name = 'followers', on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     class Meta:
@@ -58,8 +56,8 @@ class UserFollow(models.Model):
         ]
 
 class UserFollowRequest(models.Model):
-    source = models.ForeignKey(User, related_name='sender', on_delete=models.CASCADE)
-    destination = models.ForeignKey(User, related_name = 'reciver', on_delete=models.CASCADE)
+    source = models.ForeignKey(Profile, related_name='sender', on_delete=models.CASCADE)
+    destination = models.ForeignKey(Profile, related_name = 'reciver', on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     class Meta:
