@@ -24,12 +24,21 @@ def validate_size(value):  # add this to some file where you can import it from
 # return 'media/images/user_{0}/{1}'.format(instance.user.id, filename)
 
 
+
+
 class Post(models.Model):
     user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
     # title = models.CharField(max_length=100, blank=False, null=False)  # TODO: change this?
-    image = models.ImageField(upload_to=user_directory_path, blank=False, null=True,
+    image = models.ImageField(upload_to=user_directory_path, blank=False, null=False,
                               validators=[validate_size])  # TODO: upload_to = ? etc
     caption = models.CharField(max_length=1500)
     # TODO: time
 
 
+class Favorite(models.Model):
+    title = models.CharField(max_length=200)
+    posts = models.ManyToManyField(Post)
+    many = True
+
+    def __str__(self):
+        return str(self.posts.all())
