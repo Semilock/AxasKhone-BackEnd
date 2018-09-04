@@ -38,3 +38,7 @@ class Post(models.Model):
 class Favorite(models.Model):
     title = models.CharField(max_length=200)
     posts = models.ManyToManyField(Post)
+    many = True
+
+    def __str__(self):
+        return str(self.posts.all())

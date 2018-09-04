@@ -9,7 +9,7 @@ from django.utils.translation import gettext as _
 from core.post.models import Favorite, Post
 
 
-class Favorites(APIView):
+class AddToFavorites(APIView):
     def post(self, request):
         post_id = request.data.get("post_id")
         favorite_name = request.data.get("favorite")
@@ -19,6 +19,5 @@ class Favorites(APIView):
                             status=HTTP_400_BAD_REQUEST)
         favorites= Favorite.objects.get_or_create(title=favorite_name)
         favorites[0].posts.add(Post.objects.get(id=post_id))
-        return Response({'status': _('succeeded')},
-                        status=HTTP_400_BAD_REQUEST)
+        return Response({'status': _('succeeded')})
 

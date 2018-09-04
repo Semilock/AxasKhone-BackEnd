@@ -1,9 +1,10 @@
 from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from .models import Post, Favorite
-from .serializers import PostSerializer
+from .serializers import PostSerializer, FavoriteSerializer
 
 
 class PostViewSet(mixins.CreateModelMixin,
@@ -26,11 +27,17 @@ class PostViewSet(mixins.CreateModelMixin,
     #     return self.create(request, *args, **kwargs)
 
 
-# class FavoriteViewSet(mixins.CreateModelMixin,
-#                       mixins.ListModelMixin,
-#                       GenericViewSet):
-#     queryset = Favorite.objects.all()
-#     serializer_class = FavoriteSerializer(many=True)
-#
-#     def get_queryset(self):
-#         return Favorite.objects.filter(posts__user=self.request.user)
+class FavoriteViewSet(mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
+                      GenericViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteSerializer
+
+    def get_queryset(self):#todo ino yadat nare
+        return Favorite.objects.filter(posts__user_id=self.request.user.id).distinct()
+
+    # def retrieve(self, request, *args, **kwargs):
+    #     list = Favorite.objects.filter(id=request.data.get('id'))
+    #     print(list)
+    #     serializer = self.get_serializer(list)
+    #     return Response(serializer.data)

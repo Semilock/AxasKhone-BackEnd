@@ -15,7 +15,7 @@ from rest_framework.routers import DefaultRouter, SimpleRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from core.user.viewSets import ProfileViewSet
-from core.post.views import Favorites
+from core.post.views import AddToFavorites
 # router = SimpleRouter()
 router.register('profile_info' , ProfileViewSet)
 
@@ -27,8 +27,7 @@ urlpatterns = [
     url(r'^refresh/', TokenRefreshView.as_view()),
     url(r'^register/', views.Register.as_view()),
     url(r'^register_validation/',views.RegisterValidation.as_view()),
-    url(r'^favorites/', Favorites.as_view())
-
+    url(r'^add_to_favorites/', AddToFavorites.as_view())
 
 
                   # url(r'^login/', views.Login.as_view()),
