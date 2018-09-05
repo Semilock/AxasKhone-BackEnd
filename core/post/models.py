@@ -43,6 +43,7 @@ class Post(models.Model):
 class Favorite(models.Model):
     title = models.CharField(max_length=200)
     posts = models.ManyToManyField(Post)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=False, null=False)
     many = True
 
     def __str__(self):
