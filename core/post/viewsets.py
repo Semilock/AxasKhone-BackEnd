@@ -2,20 +2,20 @@
 from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 
 from core.user.models import Profile, UserFollow
-
+from .models import Post, Favorite
 from core.user.serializers import ProfileSerializer
 
 from .models import Post
-from .serializers import PostSerializerGET, PostSerializerPOST
-
+from .serializers import PostSerializerGET, PostSerializerPOST, FavoriteSerializer
 
 class PostViewSet(mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
-                  # mixins.UpdateModelMixin,
+                  mixins.UpdateModelMixin,
                   # mixins.DestroyModelMixin,
                   mixins.ListModelMixin,
                   GenericViewSet):
@@ -64,7 +64,6 @@ class PostViewSet(mixins.CreateModelMixin,
     # def post(self, request, *args, **kwargs):
     #     return self.create(request, *args, **kwargs)
 
-
 class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
     queryset = Post.objects.all()
     serializer_class = PostSerializerGET
@@ -73,3 +72,18 @@ class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
         posts = Post.objects.filter(profile__followers__source = self.request.user.profile).order_by('-pk')
         return posts
         # return [item.post for item in profiles]
+
+class FavoriteViewSet(mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
+                      GenericViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteSerializer
+
+    def get_queryset(self):#todo ino yadat nare
+        return Favorite.objects.filter(posts__user_id=self.request.user.id).distinct()
+
+    # def retrieve(self, request, *args, **kwargs):
+    #     list = Favorite.objects.filter(id=request.data.get('id'))
+    #     print(list)
+    #     serializer = self.get_serializer(list)
+    #     return Response(serializer.data)
