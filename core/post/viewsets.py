@@ -39,7 +39,7 @@ class PostViewSet(mixins.CreateModelMixin,
             return PostSerializerPOST
 
     @action(methods=['GET'], detail=False)
-    def list_post(self, request):
+    def list_posts(self, request):
         username = request.GET.get('username')
         if not username:
             username = request.user.profile.main_username
@@ -71,7 +71,7 @@ class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
     serializer_class = PostSerializerGET
 
     def get_queryset(self):
-        posts = Post.objects.filter(profile__followers__source=self.request.user.profile).order_by('-pk')
+        posts = Post.objects.filter(Q(profile__followers__source=self.request.user.profile)|Q(profile=self.request.user.profile) ).order_by('-pk')
         return posts
         # return [item.post for item in profiles]
 
