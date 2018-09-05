@@ -271,6 +271,8 @@ class Follow(APIView):
         destination = Profile.objects.filter(main_username = destination_username).first()
         if destination is None:
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
+        if UserFollow.objects.filter(source=source, destination=destination).exists():
+            return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
         if(destination.is_public):
             UserFollow.objects.create(source = source , destination = destination)
             return JsonResponse({"status": "done"})
@@ -285,6 +287,8 @@ class Accept(APIView):
         source = Profile.objects.filter(main_username=source_username).first()
         if source is None:
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
+        if UserFollow.objects.filter(source=source, destination=destination).exists():
+            return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
         if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
             UserFollow.objects.create(source=source, destination=destination)
             return JsonResponse({"status": "done"})

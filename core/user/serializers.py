@@ -22,7 +22,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     # user = UserSerializer()
     class Meta:
         model = Profile
-        fields = ('fullname', 'bio', 'main_username', 'is_following','is_public' , 'email', 'follower_number' , 'following_number', 'profile_picture' )
+        fields = ('fullname', 'bio', 'main_username', 'is_following', 'is_public', 'email', 'follower_number', 'following_number', 'profile_picture' )
 
     def update(self, instance, validated_data):
         user_data = validated_data.get('user')

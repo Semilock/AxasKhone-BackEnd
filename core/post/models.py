@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from core.user.models import User, Profile
@@ -33,4 +35,6 @@ class Post(models.Model):
     caption = models.CharField(max_length=1500)
     # TODO: time
 
+    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    modified_at = models.DateTimeField(default=datetime.now, blank=True)
 

@@ -21,7 +21,7 @@ class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin , RetrieveModelMi
 
     # def retrieve(self, request, *args, **kwargs):
     #     super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
-    #     print("Stuff")
+    #     # print("Stuff")
 
 
 
