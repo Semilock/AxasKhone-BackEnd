@@ -14,7 +14,7 @@ def user_directory_path(instance, filename):
                                            file_extension)
 
 
-def validate_size(value):  # add this to some file where you can import it from
+def validate_file_size(value):  # add this to some file where you can import it from
     limit = 1024 * 1024
     if value.size > limit:
         raise ValidationError(_('File too large. Size should not exceed 2 MiB.'))
@@ -28,7 +28,7 @@ class Post(models.Model):
     user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
     # title = models.CharField(max_length=100, blank=False, null=False)  # TODO: change this?
     image = models.ImageField(upload_to=user_directory_path, blank=False, null=False,
-                              validators=[validate_size])  # TODO: upload_to = ? etc
+                              validators=[validate_file_size])  # TODO: upload_to = ? etc
     caption = models.CharField(max_length=1500)
     # TODO: pub_date
 
