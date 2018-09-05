@@ -5,6 +5,9 @@ from django.dispatch import receiver
 from django.db import models
 import time
 from os.path import splitext
+import uuid
+from django.utils import timezone
+import datetime as datetime_module
 
 # TODO: followers and following list should add
 # TODO: profile pic should add to profile info
@@ -65,3 +68,13 @@ class UserFollowRequest(models.Model):
             ('source', 'created_at'),
             ('destination', 'created_at'),
         ]
+
+
+class PasswordResetRequests(models.Model):
+    user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
+    uuid = models.UUIDField(primary_key=True,
+                            default=uuid.uuid4, editable=False) #  TODO: hash it later
+    req_time = models.DateTimeField(auto_now_add=True)
+
+    def expired(self):
+        return self.req_time < timezone.now() - datetime_module.timedelta(days=1)

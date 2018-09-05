@@ -27,7 +27,7 @@ urlpatterns = [
     url(r'^refresh/', TokenRefreshView.as_view()),
     url(r'^register/', views.Register.as_view()),
     url(r'^register_validation/',views.RegisterValidation.as_view()),
-    url(r'^add_to_favorites/', AddToFavorites.as_view())
+    url(r'^add_to_favorites/', AddToFavorites.as_view()),
 
 
                   # url(r'^login/', views.Login.as_view()),
