@@ -2,6 +2,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.mixins import UpdateModelMixin, RetrieveModelMixin
 
 from core.user.models import Profile , UserFollow
+from rest_framework.viewsets import GenericViewSet
 
 from .serializers import ProfileSerializer
 
@@ -18,14 +19,25 @@ class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin , RetrieveModelMi
     #     elif self.request.method == 'GET' :
     #         return ProfileSerializer
 
-    # class FollowerList(mixins.ListModelMixin):
-    #     queryset = UserFollow.objects.all()
-    #     serializer_class = Profile
-    #
-    #     def get_queryset(self):
-    #         return UserFollow.objects.filter(destinations=self.context.get('request').user.profile)
-
-    #
     # def retrieve(self, request, *args, **kwargs):
     #     super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
-    #     print("Stuff")
+    #     # print("Stuff")
+
+
+
+class FollowerListViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = UserFollow.objects.all()
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        user_followers = UserFollow.objects.filter(destination=self.request.user.profile)
+        return [item.source for item in user_followers]
+
+
+class FollowingListViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = UserFollow.objects.all()
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        user_followers = UserFollow.objects.filter(source=self.request.user.profile)
+        return [item.destination for item in user_followers]

@@ -1,8 +1,13 @@
 from django.conf.urls import url, include
 from rest_framework import routers
 from django.urls import path
+from .viewsets import PostViewSet, HomeViewSet,FavoriteViewSet
 
-from .viewsets import PostViewSet, FavoriteViewSet
+# Routers provide an easy way of automatically determining the URL conf.
+home_router = routers.DefaultRouter()
+home_router.register(r'home', HomeViewSet)
+favarite_router = routers.DefaultRouter()
+favarite_router.register(r'favorites', FavoriteViewSet)
 
 app_name = 'post'
 
@@ -10,9 +15,6 @@ app_name = 'post'
 post_router = routers.DefaultRouter()
 post_router.register(r'post', PostViewSet)
 
-favarite_router = routers.DefaultRouter()
-favarite_router.register(r'favorites', FavoriteViewSet)
-#
 # urlpatterns = [
 #     url(r'^', include(router.urls)),
 #     # url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
@@ -20,7 +22,8 @@ favarite_router.register(r'favorites', FavoriteViewSet)
 
 urlpatterns = [
     path('', include(post_router.urls)),
-    path('', include(favarite_router.urls))
+    path('', include(favarite_router.urls)),
+    path('', include(home_router.urls))
 
     # path(
     #     '',

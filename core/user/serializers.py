@@ -18,10 +18,11 @@ class ProfileSerializer(serializers.ModelSerializer):
     follower_number = serializers.SerializerMethodField()
     following_number = serializers.SerializerMethodField()
     profile_picture = serializers.SerializerMethodField()
+
     # user = UserSerializer()
     class Meta:
         model = Profile
-        fields = ('fullname', 'bio', 'main_username', 'is_following','is_public' , 'email', 'follower_number' , 'following_number', 'profile_picture' )
+        fields = ('fullname', 'bio', 'main_username', 'is_following', 'is_public', 'email', 'follower_number', 'following_number', 'profile_picture' )
 
     def update(self, instance, validated_data):
         user_data = validated_data.get('user')
@@ -68,10 +69,3 @@ class ProfileSerializer(serializers.ModelSerializer):
 #         if instance.profile_picture=="":
 #             return ""
 #         return '%s%s%s' % (settings.SITE_URL,settings.MEDIA_URL, instance.profile_picture)
-
-# class UserFollowerSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = UserFollow
-#         fields =('source')
-

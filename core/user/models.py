@@ -22,12 +22,12 @@ def profile_pic_directory_path(instance, filename):
 
 
 class Profile(models.Model):
-    main_username = models.CharField(max_length=200, blank=True)
+    main_username = models.CharField(max_length=200, blank=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     fullname = models.CharField(max_length=200, blank=True)
     bio = models.CharField(max_length=400, blank=True)
     profile_picture = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
-    is_public = models.BooleanField(default=True, blank=True)
+    is_public = models.BooleanField(default=False, blank=True)
 
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     modified_at = models.DateTimeField(default=datetime.now, blank=True)
