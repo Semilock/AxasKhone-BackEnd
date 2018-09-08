@@ -25,8 +25,8 @@ urlpatterns = [
     # url(r'^home/', views.Home.as_view(), name='follower_lists'),
     path('', include(router.urls)),
     path('', include('core.post.urls')),
-    url(r'^add_to_favorites/', AddToFavorites.as_view())
+    url(r'^add_to_favorites/', AddToFavorites.as_view()),
     path('forgot_password/', views.ForgotPassword.as_view()),
-    path('reset_password/<str:reset_password_token>/', views.ResetPassword.as_view())
+    path('reset_password/<str:reset_password_token>/', views.ResetPassword.as_view()),
 ]
 
