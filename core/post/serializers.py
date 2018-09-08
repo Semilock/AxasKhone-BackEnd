@@ -8,7 +8,7 @@ from .models import Post, Favorite, Tag, Comment
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ('text' , 'pk')
+        fields = ('text' ,)
         read_only_fields = ('pk',)
 
     def create(self, validated_data):
@@ -38,7 +38,8 @@ class PostSerializerGET(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('url', 'image', 'caption', 'pk', 'profile', 'tags')
+        fields = ('url', 'image', 'caption', 'pk', 'profile', 'location', 'tags')
+
         read_only_fields = ('pk',)
 
     # def get_tag_text(self,obj):
@@ -46,18 +47,28 @@ class PostSerializerGET(serializers.ModelSerializer):
 
 #TODO: update should change'tags'
 class PostSerializerPOST(serializers.ModelSerializer):
-    tags = TagSerializer(many=True)
+    # tags = TagSerializer(many=True)
     class Meta:
         model = Post
-        fields = ('url', 'image', 'caption', 'pk','tags')
+        fields = ('url', 'image', 'caption','location', 'pk','tag_string')
+
+    # def create(self, validated_data):
+    #     tags_data = validated_data.pop('tags', [])
+    #     post = Post.objects.create(**validated_data)
+    #     for tag in tags_data:
+    #         t, _ = Tag.objects.get_or_create(text=tag["text"])
+    #         post.tags.add(t)
+    #     return post
 
     def create(self, validated_data):
-        tags_data = validated_data.pop('tags', [])
+        tag_string = validated_data.get('tag_string')
         post = Post.objects.create(**validated_data)
-        for tag in tags_data:
-            t, _ = Tag.objects.get_or_create(text=tag["text"])
+        tag_list=tag_string.split()
+        for tag in tag_list:
+            t, _ = Tag.objects.get_or_create(text=tag)
             post.tags.add(t)
         return post
+
 
 class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:

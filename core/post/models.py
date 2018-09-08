@@ -26,7 +26,7 @@ def validate_size(value):  # add this to some file where you can import it from
 # return 'media/images/user_{0}/{1}'.format(instance.user.id, filename)
 
 class Tag(models.Model):
-    text = models.CharField(max_length=200, blank=True)
+    text = models.CharField(max_length=200)
     many = True
 
 class Post(models.Model):
@@ -37,9 +37,9 @@ class Post(models.Model):
                               validators=[validate_size])  # TODO: upload_to = ? etc
 
     caption = models.CharField(max_length=1500)
-
-
+    tag_string = models.CharField(max_length = 400)
     tags = models.ManyToManyField(Tag, related_name='posts')
+    location= models.CharField(max_length=200, blank=True)
 
     # TODO: time
 
