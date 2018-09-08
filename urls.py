@@ -20,6 +20,7 @@ router.register('profile_info', ProfileViewSet)
 urlpatterns = [
                   # url(r'^', include(router.urls)),
                   url(r'^user/', include('core.user.urls')),
+                  url(r'^notifications/', include('apps.notif.urls')),
                   url(r'^admin/', admin.site.urls),
                   url(r'^login/', TokenObtainPairView.as_view()),
                   url(r'^refresh/', TokenRefreshView.as_view()),

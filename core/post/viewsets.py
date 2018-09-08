@@ -80,7 +80,7 @@ class PostViewSet(mixins.CreateModelMixin,
         elif self.request.method == 'POST':
             text = request.data.get("text")
             post = Post.objects.get(id=pk)
-            queue.enqueue(create_comment, post, text, self.request.user.profile) # added by arghavan
+            queue.enqueue(create_comment, post, text, self.request.user.profile)
             return Response({'status': _('succeeded')})
 
 
@@ -207,8 +207,16 @@ class TagViewSet(mixins.ListModelMixin,
 
 
 def create_comment(post, text, profile):
-    notif = Notification(type = comment_type)
-    notif.save()
-    comment = Comment.objects.create(notif=notif,text=text, post=post, profile=profile)
+    comment = Comment.objects.create(text=text, post=post, profile=profile)
     post.comments.add(comment)
+    notif = Notification(type=comment_type, receiver=Profile.objects.get(id=post.profile.id), sender=profile, data=post.id)
+    notif.save()
+    # post_owner = Profile.objects.get(id=post.profile.id)
+    # friends = post_owner.followers
+    # for friend in friends:
+    #     notif = Notification(type=comment_type, receiver=friend, sender=profile, data=post.id)
+    #     notif.save()
+    # n, created = Notification.objects.get_or_create(type=comment_type, receiver=post_owner, sender=profile, data=post.id)
+    # n.you = True
+
 
