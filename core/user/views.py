@@ -19,6 +19,8 @@ from core.user.models import Profile, PasswordResetRequests
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
 import uuid
+import json
+import requests
 
 from django.contrib.auth.password_validation import validate_password
 
@@ -150,6 +152,9 @@ class Register(APIView):
         # return Response({'token': token})
         return Response({'status': _('succeeded')})
 
+
+
+
 @permission_classes((AllowAny,))
 class ForgotPassword(APIView):
     """
@@ -158,24 +163,55 @@ class ForgotPassword(APIView):
     * Requires username.
     """
 
+    # TODO: should be logged
+
+    @staticmethod
+    def send_password_reset_email(username, email, password_reset_url):
+        email_api_url = 'http://192.168.10.66:80/api/send/mail' # TODO: shouldn't be someplace else?
+        subject = "Password reset request for Akkaskhuneh"  # TODO: translate it later
+        body = """
+               <p>Hello dear {0},</p>
+               <p>You can reset your password <a href="{1}">here. Or, ignore this message.</p>
+               """.format(username, password_reset_url)  # TODO: translate it later
+        payload = {
+            "to": email,
+            "body": body,
+            "subject": subject
+        }
+        payload = json.dumps(payload)  # converting to json
+        headers = {'agent-key': '5pWlxEtieM', 'content-type': 'application/json'}
+        result = requests.post(email_api_url, headers=headers, data=payload)
+        return result.status_code
+
     def post(self, request):
-        username = request.data.get('username', False)
+        email = request.data.get('email')
 
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(email=email)
+            try:
+                PasswordResetRequests.objects.get(user=user).delete()
+            except PasswordResetRequests.DoesNotExist:
+                pass
             password_reset_request = PasswordResetRequests(user=user)
-            uuid = password_reset_request.uuid
+            token = uuid.uuid4().hex
+            password_reset_request.set_token(token)
             password_reset_request.save()
 
             host_root = request.build_absolute_uri('/') # example: http://127.0.0.1:8000/
-            password_reset_url = '{0}user/reset_password/{1}/'.format(host_root, uuid.hex)
-            # TODO: email password_reset_url to user.email
-
-            return JsonResponse({"error": _("Under_construction:)"),
-                                 "url": password_reset_url})  # TODO: url should not be here!
+            password_reset_url = '{0}user/reset_password/{1}/'.format(host_root, token)
+            send_mail_response_code = \
+                ForgotPassword.send_password_reset_email(user.profile.main_username,
+                                                         user.email,
+                                                         password_reset_url)
+            if send_mail_response_code == 200:
+                return JsonResponse({"status": _("Succeeded. Please check your email.")},
+                                    status=HTTP_200_OK)
+            else:
+                return JsonResponse({"error": _("Failure in sending email. Try later")},
+                                    status=send_mail_response_code)
 
         except User.DoesNotExist:
-            return JsonResponse({"error": _("Wrong_username")},
+            return JsonResponse({"error": _("Wrong_email")},
                                 status=HTTP_400_BAD_REQUEST)
 
 
@@ -184,28 +220,30 @@ class ResetPassword(APIView):
     """
     View to reset password.
 
-    * Requires valid uuid in hex format in url.
-    * For validation should contain 'validation' in body with value 'True'.
+    * Requires valid token in url.
+    * For validation should contain 'validation' key in body with value 'true'.
     * For updating password should contain 'new_password'.
     """
 
-    def post(self, request, uuidhex):
-        #test
-        print(uuidhex)
-        print(request.data.get('validation'))
-        # return JsonResponse({"error": _("Wrong_username")},
-        #                     status=HTTP_200_OK)
+    def post(self, request, reset_password_token):
+        # test
+        # print(reset_password_token)
+        # print(request.data.get('validation'))
+        # test
+
+        # TODO: should be logged
 
         try:
-            uid = uuid.UUID(uuidhex)
-            password_reset_request = PasswordResetRequests.objects.get(uuid=uid)
-            if request.data.get('validation') == 'True':
-                if password_reset_request.expired():
-                    return JsonResponse({"error": _("Invalid_request")},  #TODO: error: expired ?
-                                        status=HTTP_400_BAD_REQUEST)
-                else:
-                    return JsonResponse({"status": _("succeeded")},
-                                        status=HTTP_200_OK)
+            password_reset_request = PasswordResetRequests.objects.get(
+                hashed_token=PasswordResetRequests.hash_token(reset_password_token)
+            )  # may throw DoesNotExist
+            if password_reset_request.expired():
+                return JsonResponse({"error": _("Invalid_request")},  # TODO: error: expired ?
+                                    status=HTTP_400_BAD_REQUEST)
+            if request.data.get('validation') == 'true':
+                return JsonResponse({"status": _("succeeded")},
+                                    status=HTTP_200_OK)
+
             new_password = request.data.get('new_password')
             try:
                 validate_password(new_password)
@@ -214,14 +252,12 @@ class ResetPassword(APIView):
             user = password_reset_request.user
             user.set_password(new_password)
             user.save()
-            # TODO: should password_reset_request be disabled ?
+            password_reset_request.delete()
+            # TODOdone: should password_reset_request be disabled ? is deleted
             return JsonResponse({"status": _("succeeded")})
-        except (PasswordResetRequests.DoesNotExist,
-                ValueError):  # may prefer to seperate these two exceptions for logging purposes
+        except PasswordResetRequests.DoesNotExist:
             return JsonResponse({"error": _("Invalid_request")},
                                 status=HTTP_400_BAD_REQUEST)
-
-
 
 
 class ChangePassword(APIView):

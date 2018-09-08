@@ -15,7 +15,7 @@ urlpatterns = [
     url(r'^following_list/', views.FollowingList.as_view(), name='following_lists'),
     path('', include('core.post.urls')),
     path('forgot_password/', views.ForgotPassword.as_view()),
-    path('reset_password/<str:uuidhex>/', views.ResetPassword.as_view())
+    path('reset_password/<str:reset_password_token>/', views.ResetPassword.as_view())
 
 ]
 
