@@ -405,7 +405,7 @@ class Accept(APIView):
             return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
 #
 # class FollowerList(generics.ListCreateAPIView):
-#     def get(self, request):
+#     def get(self, request):a bit bug debuged!
 #         follower_list=[]
 #         followers = UserFollow.objects.filter(destination= request.user.profile)
 #         for follower in followers:

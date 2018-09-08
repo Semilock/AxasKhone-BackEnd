@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from django.utils.translation import gettext as _
 from rest_framework.viewsets import GenericViewSet
 
-from core.post.models import Favorite, Post
+from core.post.models import Favorite, Post, Tag , Comment
 
 
 class AddToFavorites(APIView):
@@ -20,3 +20,19 @@ class AddToFavorites(APIView):
         favorites = Favorite.objects.get_or_create(title=favorite_name, profile=user.profile)
         favorites[0].posts.add(Post.objects.get(id=post_id))
         return Response({'status': _('succeeded')})
+
+class AddToTags(APIView):
+    def post(self, request):
+        post_id = request.data.get("post_id")
+        tag_text = request.data.get("tag")
+        post = Post.objects.get(id=post_id)
+
+        # post=Post.objects.get(post_id=post_id)
+        # if post.profile.user != request.user
+        #     return({({'error': _('you cant add tag to others post)},
+        #                     status=HTTP_400_BAD_REQUEST)})
+        tags = Tag.objects.get_or_create(text=tag_text)
+        tags[0].posts.add(post)
+        post.tags.add(tags[0])
+        return Response({'status': _('succeeded')})
+

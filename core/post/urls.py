@@ -1,19 +1,22 @@
 from django.conf.urls import url, include
 from rest_framework import routers
 from django.urls import path
-from .viewsets import PostViewSet, HomeViewSet,FavoriteViewSet
+
+from core.post.views import AddToTags
+from .viewsets import PostViewSet, HomeViewSet, FavoriteViewSet, TagViewSet#, CommentViewSet
 
 # Routers provide an easy way of automatically determining the URL conf.
 home_router = routers.DefaultRouter()
-home_router.register(r'home', HomeViewSet)
 favarite_router = routers.DefaultRouter()
-favarite_router.register(r'favorites', FavoriteViewSet)
-
-app_name = 'post'
-
-# Routers provide an easy way of automatically determining the URL conf.
+tag_router = routers.DefaultRouter()
 post_router = routers.DefaultRouter()
+# comment_router = routers.DefaultRouter()
+home_router.register(r'home', HomeViewSet)
+favarite_router.register(r'favorites', FavoriteViewSet)
+tag_router.register(r'tags', TagViewSet)
 post_router.register(r'post', PostViewSet)
+# comment_router.register(r'comment', CommentViewSet)
+
 
 # urlpatterns = [
 #     url(r'^', include(router.urls)),
@@ -23,7 +26,10 @@ post_router.register(r'post', PostViewSet)
 urlpatterns = [
     path('', include(post_router.urls)),
     path('', include(favarite_router.urls)),
-    path('', include(home_router.urls))
+    path('', include(home_router.urls)),
+    path('', include(tag_router.urls)),
+    # path('', include(comment_router.urls)),
+        url(r'^add_to_tags/', AddToTags.as_view())
 
     # path(
     #     '',
