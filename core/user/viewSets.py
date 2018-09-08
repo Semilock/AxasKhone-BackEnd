@@ -12,18 +12,16 @@ class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin , RetrieveModelMi
     queryset = Profile.objects.all()
     lookup_field = 'main_username'
     serializer_class = ProfileSerializer
-
+    #
     # def get_serializer_class(self):
     #     if self.request.method == 'PUT' :
     #         return ProfileSerializer
     #     elif self.request.method == 'GET' :
     #         return ProfileSerializer
 
-    # def retrieve(self, request, *args, **kwargs):
-    #     super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
-    #     # print("Stuff")
-
-
+    def retrieve(self, request, *args, **kwargs):
+        super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
+        # print("Stuff")
 
 class FollowerListViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = UserFollow.objects.all()
@@ -41,3 +39,4 @@ class FollowingListViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_queryset(self):
         user_followers = UserFollow.objects.filter(source=self.request.user.profile)
         return [item.destination for item in user_followers]
+

@@ -1,3 +1,4 @@
+#TODO: tag ha ba post zakhire nemishan!!!
 from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -5,8 +6,8 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
 
-from .models import Post, Favorite
-from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST
+from .models import Post, Favorite, Tag, Comment
+from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer
 
 from core.user.models import Profile, UserFollow
 from .models import Post, Favorite
@@ -29,7 +30,7 @@ class PostViewSet(mixins.CreateModelMixin,
         return Post.objects.filter(profile=self.request.user.profile).order_by('-pk')
 
     def perform_create(self, serializer):
-        print(self.request.user.profile)
+        # print(self.request.user.profile)
         serializer.save(profile=self.request.user.profile)
 
     def get_serializer_class(self):
@@ -66,12 +67,27 @@ class PostViewSet(mixins.CreateModelMixin,
     #     return self.create(request, *args, **kwargs)
 
 
+    @action(methods=['GET', 'POST'], detail=True)
+    def comment(self, request, pk):
+        if self.request.method == 'GET':
+            queryset = Comment.objects.filter(post__pk=pk)
+            comments = self.paginate_queryset(queryset)
+            serializer = CommentSerializer(comments, many=True)
+            return self.get_paginated_response(serializer.data)
+        elif self.request.method == 'POST':
+            text = request.data.get("text")
+            post = Post.objects.get(id=pk)
+            comment = Comment.objects.create(text=text, post=post, profile=self.request.user.profile)
+            post.comments.add(comment)
+            return Response({'status': ('succeeded')})
+
+
 class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
     queryset = Post.objects.all()
     serializer_class = PostSerializerGET
 
     def get_queryset(self):
-        posts = Post.objects.filter(Q(profile__followers__source=self.request.user.profile)|Q(profile=self.request.user.profile) ).order_by('-pk')
+        posts = Post.objects.filter(Q(profile__followers__source=self.request.user.profile)|Q(profile=self.request.user.profile) ).distinct().order_by('-pk')
         return posts
         # return [item.post for item in profiles]
 
@@ -123,3 +139,59 @@ class FavoriteViewSet(mixins.ListModelMixin,
 
         serializer = PostSerializerGET(queryset, many=True, context=serializer_context)
         return Response(serializer.data)
+
+class TagViewSet(mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
+                      GenericViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+    def get_queryset(self):
+        return Tag.objects.all()
+
+    @action(methods=['GET'], detail=False)
+    def list_posts(self, request):
+        # if not username:
+        #     username = request.user.id
+        tag = Tag.objects.get(text=request.GET.get('tag'))
+
+        queryset = tag.posts.filter(Q(profile__is_public=True) | Q(profile__followers__source=self.request.user.profile) | Q(profile__user=request.user))
+
+        page = self.paginate_queryset(queryset)
+        serializer_context = {
+            'request': request,
+        }
+        if page is not None:
+            serializer = PostSerializerGET(page, many=True, context=serializer_context)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = PostSerializerGET(queryset, many=True, context=serializer_context)
+        return Response(serializer.data)
+
+# class CommentViewSet(mixins.CreateModelMixin,
+#                   mixins.RetrieveModelMixin,
+#                   #mixins.UpdateModelMixin,
+#                   # mixins.DestroyModelMixin,
+#                   mixins.ListModelMixin,
+#                   GenericViewSet):
+#     queryset = Comment.objects.all()
+#     serializer_class = CommentSerializer
+#
+#     def get_queryset(self):
+#         return Comment.objects.filter(profile=self.request.user.profile)
+#
+#     @action(methods=['GET'], detail=True)
+#     def get_comment(self, request, pk):
+#         queryset = Comment.objects.filter(post__pk=pk)
+#         comments = self.paginate_queryset(queryset)
+#         serializer = CommentSerializer(comments, many=True)
+#         return self.get_paginated_response(serializer.data)
+#
+#     @action(methods=['POST'], detail=True)
+#     def add_comment(self, request, pk):
+#         # pk = request.GET.get("pk")
+#         text = request.data.get("text")
+#         post = Post.objects.get(id=pk)
+#         comment = Comment.objects.create(text=text, post=post, profile=self.request.user.profile)
+#         post.comments.add(comment)
+#         return Response({'status': ('succeeded')})

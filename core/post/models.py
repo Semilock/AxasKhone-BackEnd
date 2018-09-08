@@ -25,8 +25,9 @@ def validate_size(value):  # add this to some file where you can import it from
 # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
 # return 'media/images/user_{0}/{1}'.format(instance.user.id, filename)
 
-
-
+class Tag(models.Model):
+    text = models.CharField(max_length=200, blank=True)
+    many = True
 
 class Post(models.Model):
  #   user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
@@ -34,11 +35,23 @@ class Post(models.Model):
     # title = models.CharField(max_length=100, blank=False, null=False)  # TODO: change this?
     image = models.ImageField(upload_to=user_directory_path, blank=False, null=False,
                               validators=[validate_size])  # TODO: upload_to = ? etc
+
     caption = models.CharField(max_length=1500)
+
+
+    tags = models.ManyToManyField(Tag, related_name='posts')
+
     # TODO: time
 
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     modified_at = models.DateTimeField(default=datetime.now, blank=True)
+
+
+class Comment(models.Model):
+    text = models.CharField(max_length=200)
+    profile = models.ForeignKey(Profile, blank=True, null=False, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
+
 
 class Favorite(models.Model):
     title = models.CharField(max_length=200)
@@ -48,3 +61,4 @@ class Favorite(models.Model):
 
     def __str__(self):
         return str(self.posts.all())
+
