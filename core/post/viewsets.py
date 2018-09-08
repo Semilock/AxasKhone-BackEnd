@@ -1,4 +1,5 @@
-#TODO: tag ha ba post zakhire nemishan!!!
+# TODO: tag ha ba post zakhire nemishan!!!
+import redis
 from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -6,6 +7,8 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
 
+from Redis.globals import queue, comment_type
+from apps.notif.models import Notification
 from .models import Post, Favorite, Tag, Comment
 from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer
 
@@ -15,6 +18,7 @@ from core.user.serializers import ProfileSerializer
 
 from .models import Post
 from .serializers import PostSerializerGET, FavoriteSerializer
+from django.utils.translation import gettext as _
 
 
 class PostViewSet(mixins.CreateModelMixin,
@@ -66,7 +70,6 @@ class PostViewSet(mixins.CreateModelMixin,
     # def post(self, request, *args, **kwargs):
     #     return self.create(request, *args, **kwargs)
 
-
     @action(methods=['GET', 'POST'], detail=True)
     def comment(self, request, pk):
         if self.request.method == 'GET':
@@ -77,9 +80,8 @@ class PostViewSet(mixins.CreateModelMixin,
         elif self.request.method == 'POST':
             text = request.data.get("text")
             post = Post.objects.get(id=pk)
-            comment = Comment.objects.create(text=text, post=post, profile=self.request.user.profile)
-            post.comments.add(comment)
-            return Response({'status': ('succeeded')})
+            queue.enqueue(create_comment, post, text, self.request.user.profile) # added by arghavan
+            return Response({'status': _('succeeded')})
 
 
 class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
@@ -87,7 +89,8 @@ class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
     serializer_class = PostSerializerGET
 
     def get_queryset(self):
-        posts = Post.objects.filter(Q(profile__followers__source=self.request.user.profile)|Q(profile=self.request.user.profile) ).distinct().order_by('-pk')
+        posts = Post.objects.filter(Q(profile__followers__source=self.request.user.profile) | Q(
+            profile=self.request.user.profile)).distinct().order_by('-pk')
         return posts
         # return [item.post for item in profiles]
 
@@ -126,7 +129,9 @@ class FavoriteViewSet(mixins.ListModelMixin,
             username = request.user.id
         favorite = Favorite.objects.get(id=pk)
 
-        queryset = favorite.posts.filter(Q(profile__is_public=True) | Q(profile__followers__source=self.request.user.profile) | Q(profile__user=request.user))
+        queryset = favorite.posts.filter(
+            Q(profile__is_public=True) | Q(profile__followers__source=self.request.user.profile) | Q(
+                profile__user=request.user))
         # .filter(user_id=user_id)
 
         page = self.paginate_queryset(queryset)
@@ -140,9 +145,10 @@ class FavoriteViewSet(mixins.ListModelMixin,
         serializer = PostSerializerGET(queryset, many=True, context=serializer_context)
         return Response(serializer.data)
 
+
 class TagViewSet(mixins.ListModelMixin,
-                      mixins.RetrieveModelMixin,
-                      GenericViewSet):
+                 mixins.RetrieveModelMixin,
+                 GenericViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
@@ -155,7 +161,9 @@ class TagViewSet(mixins.ListModelMixin,
         #     username = request.user.id
         tag = Tag.objects.get(text=request.GET.get('tag'))
 
-        queryset = tag.posts.filter(Q(profile__is_public=True) | Q(profile__followers__source=self.request.user.profile) | Q(profile__user=request.user))
+        queryset = tag.posts.filter(
+            Q(profile__is_public=True) | Q(profile__followers__source=self.request.user.profile) | Q(
+                profile__user=request.user))
 
         page = self.paginate_queryset(queryset)
         serializer_context = {
@@ -167,6 +175,7 @@ class TagViewSet(mixins.ListModelMixin,
 
         serializer = PostSerializerGET(queryset, many=True, context=serializer_context)
         return Response(serializer.data)
+
 
 # class CommentViewSet(mixins.CreateModelMixin,
 #                   mixins.RetrieveModelMixin,
@@ -195,3 +204,11 @@ class TagViewSet(mixins.ListModelMixin,
 #         comment = Comment.objects.create(text=text, post=post, profile=self.request.user.profile)
 #         post.comments.add(comment)
 #         return Response({'status': ('succeeded')})
+
+
+def create_comment(post, text, profile):
+    notif = Notification(type = comment_type)
+    notif.save()
+    comment = Comment.objects.create(notif=notif,text=text, post=post, profile=profile)
+    post.comments.add(comment)
+

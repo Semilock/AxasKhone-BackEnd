@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 
     'core.post',
     'core.user',
+    'apps.notif',
 
 
     'rest_framework',

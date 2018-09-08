@@ -2,6 +2,8 @@ from datetime import datetime
 
 from django.core.exceptions import ValidationError
 from django.db import models
+
+from apps.notif.models import Notification
 from core.user.models import User, Profile
 import time
 from os.path import splitext
@@ -51,6 +53,7 @@ class Comment(models.Model):
     text = models.CharField(max_length=200)
     profile = models.ForeignKey(Profile, blank=True, null=False, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
+    notif = models.ForeignKey(Notification, on_delete=models.CASCADE)
 
 
 class Favorite(models.Model):
