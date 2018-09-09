@@ -1,4 +1,5 @@
 #TODO: tag ha ba post zakhire nemishan!!!
+from django.http import JsonResponse
 from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -6,8 +7,9 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
 
-from .models import Post, Favorite, Tag, Comment
-from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer
+from .models import Post, Favorite, Tag, Comment, Like
+from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer, \
+    LikeSerializer
 
 from core.user.models import Profile, UserFollow
 from .models import Post, Favorite
@@ -15,6 +17,7 @@ from core.user.serializers import ProfileSerializer
 
 from .models import Post
 from .serializers import PostSerializerGET, FavoriteSerializer
+
 
 
 class PostViewSet(mixins.CreateModelMixin,
@@ -76,9 +79,31 @@ class PostViewSet(mixins.CreateModelMixin,
             return self.get_paginated_response(serializer.data)
         elif self.request.method == 'POST':
             text = request.data.get("text")
+            if text is None or text=="":
+                return JsonResponse({"error": "empty_field"}, status=HTTP_400_BAD_REQUEST)
             post = Post.objects.get(id=pk)
+            """error of page not found handling"""
+            if post is None:
+                return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
             comment = Comment.objects.create(text=text, post=post, profile=self.request.user.profile)
             post.comments.add(comment)
+            return Response({'status': ('succeeded')})
+
+    @action(methods=['GET', 'POST'], detail=True)
+    def like(self, request, pk):
+        if self.request.method == 'GET':
+            queryset = Like.objects.filter(post__pk=pk)
+            likes = self.paginate_queryset(queryset)
+            serializer = LikeSerializer(likes, many=True)
+            return self.get_paginated_response(serializer.data)
+        elif self.request.method == 'POST':
+            post = Post.objects.get(id=pk)
+            if post is None:
+                return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
+            if Like.objects.filter(post=post , profile=self.request.user.profile).exists():
+                return JsonResponse({"error": "already_liked"}, status=HTTP_400_BAD_REQUEST)
+            like = Like.objects.create(post=post, profile=self.request.user.profile)
+            post.likes.add(like)
             return Response({'status': ('succeeded')})
 
 
@@ -195,3 +220,4 @@ class TagViewSet(mixins.ListModelMixin,
 #         comment = Comment.objects.create(text=text, post=post, profile=self.request.user.profile)
 #         post.comments.add(comment)
 #         return Response({'status': ('succeeded')})
+
