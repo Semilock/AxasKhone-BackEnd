@@ -22,7 +22,7 @@ from django.http import HttpResponse
 from django.utils.translation import gettext as _
 import uuid
 import json
-import requests
+# import requests
 
 from django.contrib.auth.password_validation import validate_password
 
