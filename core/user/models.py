@@ -5,6 +5,10 @@ from django.dispatch import receiver
 from django.db import models
 import time
 from os.path import splitext
+import uuid
+from django.utils import timezone
+import datetime as datetime_module
+from hashlib import sha256
 
 # TODO: followers and following list should add
 # TODO: profile pic should add to profile info
@@ -65,3 +69,40 @@ class UserFollowRequest(models.Model):
             ('source', 'created_at'),
             ('destination', 'created_at'),
         ]
+
+
+class PasswordResetRequests(models.Model):
+    user = models.OneToOneField(User, primary_key=True, blank=False, null=False, on_delete=models.CASCADE)
+    # uuid = models.UUIDField(primary_key=True,
+    #                         default=uuid.uuid4, editable=False) #  TODOdone: hash it later
+    hashed_token = models.BinaryField(max_length=32, null=False, blank=False, editable=False)
+    req_date = models.DateTimeField(auto_now_add=True)
+
+    @staticmethod
+    def hash_token(token):
+        """
+        Takes a string, hashes it and returns the resulted bytes.
+        :param token: ASCII string
+        :return: bytes string of length at most 32
+        """
+        hashed_token = sha256(token.encode('ascii'))
+        hashed_token = hashed_token.digest()[:min(hashed_token.digest_size, 32)]
+        return hashed_token
+
+    def set_token(self, token):
+        hashed_token = PasswordResetRequests.hash_token(token)
+        self.hashed_token = hashed_token
+
+    # seems redundant
+    # def token_verified(self, token):
+    #     hashed_token = PasswordResetRequests.hash_token(token)
+    #     return self.token == hashed_token
+
+    def expired(self):
+        # test
+        print("req_date")
+        print(self.req_date)
+        print("now")
+        print(timezone.now())
+        # test
+        return self.req_date < timezone.now() - datetime_module.timedelta(days=1)
