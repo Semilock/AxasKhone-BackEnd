@@ -209,7 +209,9 @@ class TagViewSet(mixins.ListModelMixin,
 def create_comment(post, text, profile):
     comment = Comment.objects.create(text=text, post=post, profile=profile)
     post.comments.add(comment)
-    notif = Notification(type=comment_type, receiver=Profile.objects.get(id=post.profile.id), sender=profile, data=post.id)
+    receiver = Profile.objects.get(id=post.profile.id)
+    notif = Notification(type=comment_type, receiver=receiver, sender=profile, data=post.id, object=receiver)
+    notif.you = True
     notif.save()
     # post_owner = Profile.objects.get(id=post.profile.id)
     # friends = post_owner.followers

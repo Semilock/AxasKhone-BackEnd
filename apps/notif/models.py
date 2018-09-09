@@ -5,6 +5,7 @@ from core.user.models import Profile
 
 class Notification(models.Model):
     type = models.CharField(max_length=100)
+    object = models.ForeignKey(Profile, on_delete=models.CASCADE)
     is_shown = models.BooleanField(default=False)
     receiver = models.ForeignKey(Profile, related_name="received_notifs", on_delete=models.CASCADE)
     you = models.BooleanField(default=False)

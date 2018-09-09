@@ -269,7 +269,7 @@ class Accept(APIView):
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
         if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
-            UserFollow.objects.create(source=source, destination=destination)
+            queue.enqueue(create_accept_follow_request, destination, source)
             return JsonResponse({"status": "done"})
         else:
             return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
@@ -297,14 +297,32 @@ class Accept(APIView):
 
 def create_user_follow(destination, source):
     UserFollow.objects.create(source=source, destination=destination)
-    notif = Notification(type=follow_type, receiver=destination, sender=source)
+    notif = Notification(type=follow_type, receiver=destination, sender=source, object=destination)
+    notif.you = True
     notif.save()
+    create_follow_notif_for_friends(destination, source)
+
+
+def create_follow_notif_for_friends(destination, source):
+    friends = source.followers
+    for friend in friends:
+        print(friend.main_username)
+        notif = Notification(type=follow_type, receiver=friend, sender=source, object=destination)
+        notif.save()
 
 
 def create_user_follow_request(destination, source):
     UserFollowRequest.objects.create(source=source, destination=destination)
-    notif = Notification(type=follow_request_type, receiver=destination, sender=source)
+    notif = Notification(type=follow_request_type, receiver=destination, sender=source, object=destination)
+    notif.you = True
     notif.save()
 
 
-# todo accept ro az kiana beporsam
+def create_accept_follow_request(destination, source):
+    UserFollow.objects.create(source=source, destination=destination)
+    notif = Notification(type=accept_follow_request_type, receiver=source, sender=destination, object=source)
+    notif.you = True
+    notif.save()
+    accepting_user = Notification(type=follow_type, you=True, receiver=destination, sender=source, object=source)
+    accepting_user.save()
+    create_follow_notif_for_friends(destination, source)

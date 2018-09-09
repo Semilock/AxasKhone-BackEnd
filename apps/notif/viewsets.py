@@ -10,4 +10,5 @@ class NotifViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = Notification.objects.all()
 
     def get_queryset(self):
-        return Notification.objects.filter(receiver=self.request.user.profile).order_by('-pk')
+        print(self.request.user.profile.main_username)
+        return Notification.objects.filter(receiver_id=self.request.user.profile.id).order_by('-pk')
