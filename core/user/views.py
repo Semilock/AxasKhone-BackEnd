@@ -300,15 +300,15 @@ def create_user_follow(destination, source):
     notif = Notification(type=follow_type, receiver=destination, sender=source, object=destination)
     notif.you = True
     notif.save()
-    create_follow_notif_for_friends(destination, source)
+    # create_follow_notif_for_friends(destination, source)
 
 
-def create_follow_notif_for_friends(destination, source):
-    friends = source.followers
-    for friend in friends:
-        print(friend.main_username)
-        notif = Notification(type=follow_type, receiver=friend, sender=source, object=destination)
-        notif.save()
+# def create_follow_notif_for_friends(destination, source):
+#     friends = source.followers.list
+#     for friend in friends:
+#         print(friend.main_username)
+#         notif = Notification(type=follow_type, receiver=friend, sender=source, object=destination)
+#         notif.save()
 
 
 def create_user_follow_request(destination, source):
@@ -325,4 +325,4 @@ def create_accept_follow_request(destination, source):
     notif.save()
     accepting_user = Notification(type=follow_type, you=True, receiver=destination, sender=source, object=source)
     accepting_user.save()
-    create_follow_notif_for_friends(destination, source)
+    # create_follow_notif_for_friends(destination, source)
