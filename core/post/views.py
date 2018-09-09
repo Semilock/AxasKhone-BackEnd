@@ -21,6 +21,13 @@ class AddToFavorites(APIView):
         favorites[0].posts.add(Post.objects.get(id=post_id))
         return Response({'status': _('succeeded')})
 
+class RemoveFromFavorites(APIView):
+    def post(self, request):
+        favorite_id = request.data.get("favorite_id")
+        Favorite.objects.get(id=favorite_id).delete()
+        return Response({'status': _('succeeded')})
+
+
 class AddToTags(APIView):
     def post(self, request):
         post_id = request.data.get("post_id")

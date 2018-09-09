@@ -1,6 +1,6 @@
 #TODO: tag ha ba post zakhire nemishan!!!
 from django.http import JsonResponse
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
@@ -35,6 +35,20 @@ class PostViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         # print(self.request.user.profile)
         serializer.save(profile=self.request.user.profile)
+
+    def create(self, request, *args, **kwargs):
+        image = request.FILES.get("image")
+        caption = request.POST.get("caption")
+        location = request.POST.get("location")
+        profile = request.user.profile
+        post = Post.objects.create(image=image, caption=caption, location=location, profile=profile)
+        tag_string = request.POST.get("tag_string")
+        tag_list = str(tag_string).split()
+        for tag in tag_list:
+            t, _ = Tag.objects.get_or_create(text=tag)
+            post.tags.add(t)
+        print(post.id)
+        return Response(status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':

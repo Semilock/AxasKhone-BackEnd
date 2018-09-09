@@ -20,7 +20,7 @@ from django.utils.datetime_safe import datetime
 def profile_pic_directory_path(instance, filename):
     now_in_millisecs = int(round(time.time() * 1000))
     file_extension = splitext(filename)[1]
-    return 'profile_photos/user_{0}/{1}{2}'.format(instance.profile.id,
+    return 'profile_photos/user_{0}/{1}{2}'.format(instance.id,
                                                  now_in_millisecs,
                                                  file_extension)
 

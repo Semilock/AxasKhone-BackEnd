@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from rest_framework import routers
 
-from core.post.views import AddToFavorites
+from core.post.views import AddToFavorites, RemoveFromFavorites
 from core.user.viewSets import FollowerListViewSet, FollowingListViewSet
 from . import views
 from django.urls import path, include
@@ -26,6 +26,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('', include('core.post.urls')),
     url(r'^add_to_favorites/', AddToFavorites.as_view()),
+    url(r'^remove_from_favorites/', RemoveFromFavorites.as_view()),
     path('forgot_password/', views.ForgotPassword.as_view()),
     path('reset_password/<str:reset_password_token>/', views.ResetPassword.as_view()),
 ]

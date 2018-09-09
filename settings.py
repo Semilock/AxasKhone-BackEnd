@@ -131,7 +131,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-SITE_URL = '127.0.0.1:8000'
+SITE_URL = '192.168.10.63:8000'
 STATIC_URL = '/static/'
 
 # Rest Framework settings
