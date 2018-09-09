@@ -36,8 +36,8 @@ class Post(models.Model):
     image = models.ImageField(upload_to=user_directory_path, blank=False, null=False,
                               validators=[validate_size])  # TODO: upload_to = ? etc
 
-    caption = models.CharField(max_length=1500)
-    tag_string = models.CharField(max_length = 400)
+    caption = models.CharField(max_length=1500, blank=True)
+    tag_string = models.CharField(max_length = 400, blank=True)
     tags = models.ManyToManyField(Tag, related_name='posts')
     location= models.CharField(max_length=200, blank=True)
 
@@ -52,6 +52,9 @@ class Comment(models.Model):
     profile = models.ForeignKey(Profile, blank=True, null=False, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
 
+class Like(models.Model):
+    profile = models.ForeignKey(Profile, blank=True, null=False, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
 
 class Favorite(models.Model):
     title = models.CharField(max_length=200)
