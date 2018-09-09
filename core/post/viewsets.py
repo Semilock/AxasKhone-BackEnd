@@ -220,3 +220,4 @@ class TagViewSet(mixins.ListModelMixin,
 #         comment = Comment.objects.create(text=text, post=post, profile=self.request.user.profile)
 #         post.comments.add(comment)
 #         return Response({'status': ('succeeded')})
+
