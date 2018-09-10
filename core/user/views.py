@@ -1,7 +1,6 @@
 # TODO: context to all Profile serializers
 # TODO:TEST GET , POST PROFILE SERIALIZER
 # TODO: email for profile serializer post
-import re
 
 from django.contrib.sites import requests
 from rest_framework import generics
@@ -10,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
-
+from config.const import *
 from Redis.globals import *
 from apps.notif.models import Notification
 from config.const import bio_max_length
@@ -29,9 +28,6 @@ import json
 # import requests
 
 from django.contrib.auth.password_validation import validate_password
-
-email_pattern = re.compile("^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$")
-username_pattern = re.compile("^[a-zA-Z][a-zA-Z.]+|[a-zA-Z_]+")
 
 
 # @permission_classes((AllowAny,))

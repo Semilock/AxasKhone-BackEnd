@@ -6,21 +6,16 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
-
 from Redis.globals import *
 from apps.notif.models import Notification
 from .models import Post, Favorite, Tag, Comment, Like
 from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer, \
     LikeSerializer
-
 from core.user.models import Profile, UserFollow
 from .models import Post, Favorite
-from core.user.serializers import ProfileSerializer
-
 from .models import Post
 from .serializers import PostSerializerGET, FavoriteSerializer
 from django.utils.translation import gettext as _
-
 
 
 class PostViewSet(mixins.CreateModelMixin,
@@ -41,6 +36,9 @@ class PostViewSet(mixins.CreateModelMixin,
 
     def create(self, request, *args, **kwargs):
         image = request.FILES.get("image")
+        if image is None:
+            return Response({'error': ('image is required')},
+                            status=HTTP_400_BAD_REQUEST)
         caption = request.POST.get("caption")
         location = request.POST.get("location")
         profile = request.user.profile
@@ -50,8 +48,8 @@ class PostViewSet(mixins.CreateModelMixin,
         for tag in tag_list:
             t, _ = Tag.objects.get_or_create(text=tag)
             post.tags.add(t)
-        print(post.id)
-        return Response(status=status.HTTP_201_CREATED)
+        return Response({'status': ('succeeded')},
+                        status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
