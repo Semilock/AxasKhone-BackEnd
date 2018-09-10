@@ -13,6 +13,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP
 
 from Redis.globals import *
 from apps.notif.models import Notification
+from config.const import bio_max_length
 from core.user.models import UserFollow, UserFollowRequest
 
 from .serializers import ProfileSerializer
@@ -117,6 +118,8 @@ class Register(APIView):
             return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
         if len(username) < 5:
             return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
+        if not validate_bio(bio):
+            return JsonResponse({"error": _("long bio")}, status=HTTP_400_BAD_REQUEST)
         # if email is None or email == "":
         #     return Response({'error': _('empty_email')},
         #                     status=HTTP_400_BAD_REQUEST)
@@ -157,8 +160,6 @@ class Register(APIView):
         return Response({'status': _('succeeded')})
 
 
-
-
 @permission_classes((AllowAny,))
 class ForgotPassword(APIView):
     """
@@ -171,7 +172,7 @@ class ForgotPassword(APIView):
 
     @staticmethod
     def send_password_reset_email(username, email, password_reset_url):
-        email_api_url = 'http://192.168.10.66:80/api/send/mail' # TODO: shouldn't be someplace else?
+        email_api_url = 'http://192.168.10.66:80/api/send/mail'  # TODO: shouldn't be someplace else?
         subject = "Password reset request for Akkaskhuneh"  # TODO: translate it later
         body = """
                <p>Hello dear {0},</p>
@@ -201,7 +202,7 @@ class ForgotPassword(APIView):
             password_reset_request.set_token(token)
             password_reset_request.save()
 
-            host_root = request.build_absolute_uri('/') # example: http://127.0.0.1:8000/
+            host_root = request.build_absolute_uri('/')  # example: http://127.0.0.1:8000/
             password_reset_url = '{0}user/reset_password/{1}/'.format(host_root, token)
             send_mail_response_code = \
                 ForgotPassword.send_password_reset_email(user.profile.main_username,
@@ -327,6 +328,8 @@ class ProfileInfo(APIView):
         if not new_fullname is None:
             profile.fullname = new_fullname
         if not new_bio is None:
+            if not validate_bio(new_bio):
+                return JsonResponse({"error": _("long bio")}, status=HTTP_400_BAD_REQUEST)
             profile.bio = new_bio
         if not new_username is None:
             profile.main_username = new_username
@@ -438,3 +441,9 @@ def create_accept_follow_request(destination, source):
     accepting_user = Notification(type=follow_type, you=True, receiver=destination, sender=source, object=source)
     accepting_user.save()
     # create_follow_notif_for_friends(destination, source)
+
+
+def validate_bio(bio):
+    if len(bio) > bio_max_length:
+        return False
+    return True

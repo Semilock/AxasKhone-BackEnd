@@ -1,4 +1,6 @@
 import redis
+import sys
+sys.path.insert(1, "/home/arghavan/rahnema/back/")
 
 from Redis.redis_queue import SimpleQueue
 from os import environ

@@ -19,8 +19,8 @@ class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin , RetrieveModelMi
     #     elif self.request.method == 'GET' :
     #         return ProfileSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
+    # def retrieve(self, request, *args, **kwargs):
+        # super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
         # print("Stuff")
 
 class FollowerListViewSet(mixins.ListModelMixin, GenericViewSet):

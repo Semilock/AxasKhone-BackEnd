@@ -15,11 +15,12 @@ from hashlib import sha256
 from django.utils.datetime_safe import datetime
 
 # from core.user import serializers
+from config.const import bio_max_length
 
 
 def profile_pic_directory_path(instance, filename):
     now_in_millisecs = int(round(time.time() * 1000))
-    file_extension = splitext(filename)[1]
+    file_extension = splitext(filename)[-1]
     return 'profile_photos/user_{0}/{1}{2}'.format(instance.id,
                                                  now_in_millisecs,
                                                  file_extension)
@@ -29,10 +30,9 @@ class Profile(models.Model):
     main_username = models.CharField(max_length=200, blank=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     fullname = models.CharField(max_length=200, blank=True)
-    bio = models.CharField(max_length=400, blank=True)
+    bio = models.CharField(max_length=bio_max_length, blank=True)
     profile_picture = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
     is_public = models.BooleanField(default=False, blank=True)
-
     created_at = models.DateTimeField(default=datetime.now, blank=True)
     modified_at = models.DateTimeField(default=datetime.now, blank=True)
 

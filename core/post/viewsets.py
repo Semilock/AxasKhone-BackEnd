@@ -98,7 +98,10 @@ class PostViewSet(mixins.CreateModelMixin,
             if text is None or text=="":
                 return JsonResponse({"error": "empty_field"}, status=HTTP_400_BAD_REQUEST)
             post = Post.objects.get(id=pk)
-            queue.enqueue(create_comment, post, text, self.request.user.profile)
+            profile = self.request.user.profile
+            comment = Comment.objects.create(text=text, post=post, profile=profile)
+            post.comments.add(comment)
+            queue.enqueue(create_comment_notif, post, profile)
             return Response({'status': _('succeeded')})
 
     @action(methods=['GET', 'POST'], detail=True)
@@ -114,7 +117,10 @@ class PostViewSet(mixins.CreateModelMixin,
                 return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
             if Like.objects.filter(post=post , profile=self.request.user.profile).exists():
                 return JsonResponse({"error": "already_liked"}, status=HTTP_400_BAD_REQUEST)
-            queue.enqueue(create_like,post, self.request.user.profile)
+            profile = self.request.user.profile
+            like = Like.objects.create(post=post, profile=profile)
+            post.likes.add(like)
+            queue.enqueue(create_like_notif, post, profile)
             return Response({'status': ('succeeded')})
 
 
@@ -241,9 +247,7 @@ class TagViewSet(mixins.ListModelMixin,
 #         return Response({'status': ('succeeded')})
 
 
-def create_comment(post, text, profile):
-    comment = Comment.objects.create(text=text, post=post, profile=profile)
-    post.comments.add(comment)
+def create_comment_notif(post, profile):
     receiver = Profile.objects.get(id=post.profile.id)
     notif = Notification(type=comment_type, receiver=receiver, sender=profile, data=post.id, object=receiver)
     notif.you = True
@@ -257,9 +261,7 @@ def create_comment(post, text, profile):
     # n.you = True
 
 
-def create_like(post, profile):
-    like = Like.objects.create(post=post, profile=profile)
-    post.likes.add(like)
+def create_like_notif(post, profile):
     receiver = Profile.objects.get(id=post.profile.id)
     notif = Notification(type=like_type, receiver=receiver, sender=profile, data=post.id, object=receiver)
     notif.you= True
