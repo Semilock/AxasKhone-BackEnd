@@ -1,4 +1,5 @@
-#TODO: tag ha ba post zakhire nemishan!!!
+import random
+
 from django.http import JsonResponse
 from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
@@ -165,6 +166,7 @@ class FavoriteViewSet(mixins.ListModelMixin,
         serializer = PostSerializerGET(queryset, many=True, context=serializer_context)
         return Response(serializer.data)
 
+
 class TagViewSet(mixins.ListModelMixin,
                       mixins.RetrieveModelMixin,
                       GenericViewSet):
@@ -172,7 +174,8 @@ class TagViewSet(mixins.ListModelMixin,
     serializer_class = TagSerializer
 
     def get_queryset(self):
-        return Tag.objects.all()
+        queryset = list(sorted(Tag.objects.all().order_by('-number')[:20], key=lambda x:random.random()))
+        return queryset
 
     @action(methods=['GET'], detail=False)
     def list_posts(self, request):
@@ -192,6 +195,47 @@ class TagViewSet(mixins.ListModelMixin,
 
         serializer = PostSerializerGET(queryset, many=True, context=serializer_context)
         return Response(serializer.data)
+
+    @action(methods=['POST'], detail=False)
+    def search(self, request):
+        pattern_set = request.data.get('tag').split()
+        query=Q()
+        for pattern in pattern_set:
+            query = query | Q(text__contains=pattern)
+        queryset = Tag.objects.filter(query).distinct().order_by('number') #TODO: order by (number used)
+        queryset_paginate = self.paginate_queryset(queryset)
+
+        # serializer = ProfileSerializer(queryset_paginate, context={'request': request}, many=True)
+        # return self.get_paginated_response(serializer.data)
+
+        serializer=[]
+        for item in queryset_paginate:
+            serializer.append(item.text)
+        return self.get_paginated_response(serializer)
+
+class NameViewSet(mixins.ListModelMixin,
+                      GenericViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        return Tag.objects.all()
+
+    @action(methods=['POST'], detail=False)
+    def search(self, request):
+        pattern_set = request.data.get('name').split()
+        query = Q()
+        for pattern in pattern_set:
+            query = query | Q(fullname__contains=pattern) | Q(main_username__contains=pattern)
+        queryset = Profile.objects.filter(query).distinct()  # TODO: order by (?)
+        queryset_paginate= self.paginate_queryset(queryset)
+        serializer = ProfileSerializer(queryset_paginate, context={'request': request}, many=True)
+        return Response(serializer.data)
+        # serializer = []
+        # for item in queryset_paginate:
+        #     serializer.append(item.main_username)
+        # return self.get_paginated_response(serializer)
+        #  #ALGORITHM DISTANCE
 
 # class CommentViewSet(mixins.CreateModelMixin,
 #                   mixins.RetrieveModelMixin,

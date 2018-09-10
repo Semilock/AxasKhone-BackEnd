@@ -12,6 +12,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP
 
 from core.user.models import UserFollow, UserFollowRequest
 
+from core.post.models import Tag
 from .serializers import ProfileSerializer
 from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
@@ -370,6 +371,8 @@ class InviteFriends(APIView):
             contact_user = Profile.objects.filter(user__email=contact["email"]).first()
             if contact_user is not None:
                 serializer['user'] = ProfileSerializer(contact_user, context={'request': request}).data
+            if contact_user is None:
+                serializer['user'] = "NOT_FOUND"
             contacts.append(serializer)
         return JsonResponse({"contacts" :contacts})
 
@@ -403,21 +406,5 @@ class Accept(APIView):
             return JsonResponse({"status": "done"})
         else:
             return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
-#
-# class FollowerList(generics.ListCreateAPIView):
-#     def get(self, request):a bit bug debuged!
-#         follower_list=[]
-#         followers = UserFollow.objects.filter(destination= request.user.profile)
-#         for follower in followers:
-#             follower_profile = ProfileSerializer(follower.source,  context={'request': request} ).data
-#             follower_list.append(follower_profile)
-#         return JsonResponse({"follower_list":follower_list})
-#
-# class FollowingList(APIView):
-#     def get(self, request):
-#         following_list=[]
-#         followings = UserFollow.objects.filter(source= request.user.profile)
-#         for following in followings:
-#             following_profile = ProfileSerializer(following.destination,  context={'request': request} ).data
-#             following_list.append(following_profile)
-#         return JsonResponse({"following_list":following_list})
+
+

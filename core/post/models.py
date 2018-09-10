@@ -27,7 +27,7 @@ def validate_size(value):  # add this to some file where you can import it from
 
 class Tag(models.Model):
     text = models.CharField(max_length=200)
-    many = True
+    number = models.IntegerField(default=0)
 
 class Post(models.Model):
  #   user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
