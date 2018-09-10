@@ -3,6 +3,7 @@
 # TODO: email for profile serializer post
 import re
 
+from django.contrib.sites import requests
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
@@ -342,11 +343,13 @@ class InviteFriends(APIView):
         contact_list = request.data.get('contact_list')
         for contact in contact_list:
             serializer = {
-                "contact_email": contact["email"], "contact.name": contact["name"]
+                "contact_email": contact["email"], "contact_name": contact["name"]
             }
             contact_user = Profile.objects.filter(user__email=contact["email"]).first()
             if contact_user is not None:
                 serializer['user'] = ProfileSerializer(contact_user, context={'request': request}).data
+            if contact_user is None:
+                serializer['user'] = "not_found"
             contacts.append(serializer)
         return JsonResponse({"contacts": contacts})
 
