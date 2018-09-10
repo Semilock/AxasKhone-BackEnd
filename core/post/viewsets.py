@@ -7,10 +7,11 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
 
-from Redis.globals import queue, comment_type
+from Redis.globals import *
 from apps.notif.models import Notification
-from .models import Post, Favorite, Tag, Comment
-from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer
+from .models import Post, Favorite, Tag, Comment, Like
+from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer, \
+    LikeSerializer
 
 from core.user.models import Profile, UserFollow
 from .models import Post, Favorite
@@ -113,9 +114,9 @@ class PostViewSet(mixins.CreateModelMixin,
                 return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
             if Like.objects.filter(post=post , profile=self.request.user.profile).exists():
                 return JsonResponse({"error": "already_liked"}, status=HTTP_400_BAD_REQUEST)
-            like = Like.objects.create(post=post, profile=self.request.user.profile)
-            post.likes.add(like)
+            queue.enqueue(create_like,post, self.request.user.profile)
             return Response({'status': ('succeeded')})
+
 
 
 class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
@@ -256,3 +257,10 @@ def create_comment(post, text, profile):
     # n.you = True
 
 
+def create_like(post, profile):
+    like = Like.objects.create(post=post, profile=profile)
+    post.likes.add(like)
+    receiver = Profile.objects.get(id=post.profile.id)
+    notif = Notification(type=like_type, receiver=receiver, sender=profile, data=post.id, object=receiver)
+    notif.you= True
+    notif.save()
