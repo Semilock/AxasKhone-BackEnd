@@ -37,7 +37,7 @@ class PostViewSet(mixins.CreateModelMixin,
     def create(self, request, *args, **kwargs):
         image = request.FILES.get("image")
         if image is None:
-            return Response({'error': ('image is required')},
+            return Response({'error': _('image is required')},
                             status=HTTP_400_BAD_REQUEST)
         caption = request.POST.get("caption")
         location = request.POST.get("location")
@@ -46,9 +46,9 @@ class PostViewSet(mixins.CreateModelMixin,
         tag_string = request.POST.get("tag_string")
         tag_list = str(tag_string).split()
         for tag in tag_list:
-            t, _ = Tag.objects.get_or_create(text=tag)
+            t, is_created = Tag.objects.get_or_create(text=tag)
             post.tags.add(t)
-        return Response({'status': ('succeeded')},
+        return Response({'status': _('succeeded')},
                         status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
@@ -119,7 +119,7 @@ class PostViewSet(mixins.CreateModelMixin,
             like = Like.objects.create(post=post, profile=profile)
             post.likes.add(like)
             queue.enqueue(create_like_notif, post, profile)
-            return Response({'status': ('succeeded')})
+            return Response({'status': _('succeeded')})
 
 
 
@@ -247,7 +247,7 @@ class TagViewSet(mixins.ListModelMixin,
 
 def create_comment_notif(post, profile):
     receiver = Profile.objects.get(id=post.profile.id)
-    notif = Notification(type=comment_type, receiver=receiver, sender=profile, data=post.id, object=receiver)
+    notif = Notification(type=comment_type, receiver=receiver, sender=profile, data=post, object=receiver)
     notif.you = True
     notif.save()
     # post_owner = Profile.objects.get(id=post.profile.id)
@@ -261,6 +261,6 @@ def create_comment_notif(post, profile):
 
 def create_like_notif(post, profile):
     receiver = Profile.objects.get(id=post.profile.id)
-    notif = Notification(type=like_type, receiver=receiver, sender=profile, data=post.id, object=receiver)
+    notif = Notification(type=like_type, receiver=receiver, sender=profile, data=post, object=receiver)
     notif.you= True
     notif.save()

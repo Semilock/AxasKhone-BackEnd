@@ -12,6 +12,6 @@ class Notification(models.Model):
     sender = models.ForeignKey(Profile, related_name="sent_notifs", on_delete=models.CASCADE)
     data = models.IntegerField(null=True, blank=True)
     """
-    if the notif is about post, it should contain postID, 
+    if the notif is about post(like & comment), it should contain post instance as well, 
     we put it in data field 
     """

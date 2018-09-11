@@ -13,6 +13,7 @@ from config.const import *
 from Redis.globals import *
 from apps.notif.models import Notification
 from config.const import bio_max_length
+from config.utils import validate_charfield_input
 from core.user.models import UserFollow, UserFollowRequest
 
 from .serializers import ProfileSerializer
@@ -114,7 +115,7 @@ class Register(APIView):
             return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
         if len(username) < 5:
             return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
-        if not validate_bio(bio):
+        if not validate_charfield_input(bio, bio_max_length):
             return JsonResponse({"error": _("long bio")}, status=HTTP_400_BAD_REQUEST)
         # if email is None or email == "":
         #     return Response({'error': _('empty_email')},
@@ -200,16 +201,16 @@ class ForgotPassword(APIView):
 
             host_root = request.build_absolute_uri('/')  # example: http://127.0.0.1:8000/
             password_reset_url = '{0}user/reset_password/{1}/'.format(host_root, token)
-            send_mail_response_code = \
-                ForgotPassword.send_password_reset_email(user.profile.main_username,
-                                                         user.email,
-                                                         password_reset_url)
-            if send_mail_response_code == 200:
-                return JsonResponse({"status": _("Succeeded. Please check your email.")},
-                                    status=HTTP_200_OK)
-            else:
-                return JsonResponse({"error": _("Failure in sending email. Try later")},
-                                    status=send_mail_response_code)
+            # send_mail_response_code = \
+            queue.enqueue(ForgotPassword.send_password_reset_email, user.profile.main_username,
+                          user.email,
+                          password_reset_url)
+            # if send_mail_response_code == 200:
+            return JsonResponse({"status": _("Succeeded. Please check your email.")},
+                                status=HTTP_200_OK)
+            # else:
+            #     return JsonResponse({"error": _("Failure in sending email. Try later")},
+            #                         status=send_mail_response_code)
 
         except User.DoesNotExist:
             return JsonResponse({"error": _("Wrong_email")},
@@ -324,7 +325,7 @@ class ProfileInfo(APIView):
         if not new_fullname is None:
             profile.fullname = new_fullname
         if not new_bio is None:
-            if not validate_bio(new_bio):
+            if not validate_charfield_input(new_bio, bio_max_length):
                 return JsonResponse({"error": _("long bio")}, status=HTTP_400_BAD_REQUEST)
             profile.bio = new_bio
         if not new_username is None:
@@ -417,9 +418,11 @@ def create_user_follow(destination, source):
 # def create_follow_notif_for_friends(destination, source):
 #     friends = source.followers.list
 #     for friend in friends:
-#         print(friend.main_username)
-#         notif = Notification(type=follow_type, receiver=friend, sender=source, object=destination)
-#         notif.save()
+#         if not friend==destination:
+#             print(friend.main_username)
+#             notif = Notification(type=follow_type, receiver=friend, sender=source, object=destination)
+#             notif.you = False
+#             notif.save()
 
 
 def create_user_follow_request(destination, source):
@@ -438,8 +441,3 @@ def create_accept_follow_request(destination, source):
     accepting_user.save()
     # create_follow_notif_for_friends(destination, source)
 
-
-def validate_bio(bio):
-    if len(bio) > bio_max_length:
-        return False
-    return True
