@@ -1,5 +1,5 @@
 import uuid
-import pickle
+import json
 
 
 class SimpleQueue(object):
@@ -7,17 +7,16 @@ class SimpleQueue(object):
         self.conn = conn
         self.name = name
 
-    def enqueue(self, func, *args):
-        task = SimpleTask(func, *args)
-        serialized_task = pickle.dumps(task, protocol=pickle.HIGHEST_PROTOCOL)
-        self.conn.lpush(self.name, serialized_task)
-        return task.id
+    def enqueue(self, obj, *args):
+        # task = SimpleTask(func, *args)
+        # serialized_obj = json.dumps(obj)
+        self.conn.lpush(self.name, obj)
 
     def dequeue(self):
-        _, serialized_task = self.conn.brpop(self.name)
-        task = pickle.loads(serialized_task)
-        task.process_task()
-        return task
+        _, serialized_obj = self.conn.brpop(self.name)
+        # obj = json.loads(serialized_obj)
+        # task.process_task()
+        return serialized_obj
 
     def get_length(self):
         return self.conn.llen(self.name)

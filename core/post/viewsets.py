@@ -1,4 +1,6 @@
 #TODO: tag ha ba post zakhire nemishan!!!
+import json
+
 from django.http import JsonResponse
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
@@ -99,7 +101,8 @@ class PostViewSet(mixins.CreateModelMixin,
             profile = self.request.user.profile
             comment = Comment.objects.create(text=text, post=post, profile=profile)
             post.comments.add(comment)
-            queue.enqueue(create_comment_notif, post, profile)
+            # queue.enqueue(create_comment_notif, post, profile)
+            queue.enqueue(CommentSerializer(comment).data)
             return Response({'status': _('succeeded')})
 
     @action(methods=['GET', 'POST'], detail=True)
