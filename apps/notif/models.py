@@ -1,5 +1,7 @@
 from django.db import models
 
+# from core.post.models import Post
+from core.post.models import Post
 from core.user.models import Profile
 
 

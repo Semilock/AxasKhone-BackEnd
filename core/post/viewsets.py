@@ -10,6 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
 from Redis.globals import *
 from apps.notif.models import Notification
+from apps.notif.serializers import NotifSerializer
 from .models import Post, Favorite, Tag, Comment, Like
 from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer, \
     LikeSerializer
@@ -101,8 +102,16 @@ class PostViewSet(mixins.CreateModelMixin,
             profile = self.request.user.profile
             comment = Comment.objects.create(text=text, post=post, profile=profile)
             post.comments.add(comment)
-            # queue.enqueue(create_comment_notif, post, profile)
-            queue.enqueue(CommentSerializer(comment).data)
+            receiver = Profile.objects.get(id=post.profile.id)
+            # notif = Notification(type=comment_type, receiver=receiver, sender=profile, object=receiver, you=True)
+            data = {"type": comment_type,
+                    "receiver": receiver.id,
+                    "sender": profile.id,
+                    "you": True,
+                    "object": receiver.id,
+                    "id": post.id
+                    }
+            queue.enqueue(json.dumps(data))
             return Response({'status': _('succeeded')})
 
     @action(methods=['GET', 'POST'], detail=True)
@@ -121,7 +130,15 @@ class PostViewSet(mixins.CreateModelMixin,
             profile = self.request.user.profile
             like = Like.objects.create(post=post, profile=profile)
             post.likes.add(like)
-            queue.enqueue(create_like_notif, post, profile)
+            receiver = Profile.objects.get(id=post.profile.id)
+            data = {"type": like_type,
+                    "receiver": receiver.id,
+                    "sender": profile.id,
+                    "you": True,
+                    "object": receiver.id,
+                    "id": post.id
+                    }
+            queue.enqueue(json.dumps(data))
             return Response({'status': _('succeeded')})
 
 

@@ -2,7 +2,7 @@ import redis
 
 from Redis.redis_queue import SimpleQueue
 
-conn = redis.Redis()
+conn = redis.Redis(decode_responses=True)
 queue = SimpleQueue(conn, 'queue')
 
 comment_type = 'comment'

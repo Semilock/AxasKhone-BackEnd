@@ -364,10 +364,26 @@ class Follow(APIView):
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
         if destination.is_public:
-            queue.enqueue(create_user_follow, destination, source)
+            UserFollow.objects.create(source=source, destination=destination)
+            data = {"type": follow_type,
+                    "receiver": destination.id,
+                    "sender": source.id,
+                    "you": True,
+                    "object": destination.id,
+                    "id": 0
+                    }
+            queue.enqueue(json.dumps(data))
             return JsonResponse({"status": "done"})
         else:
-            queue.enqueue(create_user_follow_request, destination, source)
+            UserFollowRequest.objects.create(source=source, destination=destination)
+            data = {"type": follow_request_type,
+                    "receiver": destination.id,
+                    "sender": source.id,
+                    "you": True,
+                    "object": destination.id,
+                    "id": 0
+                    }
+            queue.enqueue(json.dumps(data))
             return JsonResponse({"statuas": "follow_request_sent"})
 
 
@@ -381,7 +397,23 @@ class Accept(APIView):
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
         if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
-            queue.enqueue(create_accept_follow_request, destination, source)
+            UserFollow.objects.create(source=source, destination=destination)
+            data = {"type": accept_follow_request_type,
+                    "receiver": source.id,
+                    "sender": destination.id,
+                    "you": True,
+                    "object": source.id,
+                    "id": 0
+                    }
+            queue.enqueue(json.dumps(data))
+            data = {"type": follow_type,
+                    "receiver": destination.id,
+                    "sender": source.id,
+                    "you": True,
+                    "object": source.id,
+                    "id": 0
+                    }
+            queue.enqueue(json.dumps(data))
             return JsonResponse({"status": "done"})
         else:
             return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)

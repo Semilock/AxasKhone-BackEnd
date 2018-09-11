@@ -69,3 +69,19 @@ class ProfileSerializer(serializers.ModelSerializer):
 #         if instance.profile_picture=="":
 #             return ""
 #         return '%s%s%s' % (settings.SITE_URL,settings.MEDIA_URL, instance.profile_picture)
+
+
+class ProfileSerializerNotif(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+    profile_picture = serializers.SerializerMethodField()
+    class Meta:
+        model = Profile
+        fields = ('username','profile_picture')
+
+    def get_username(self, obj):
+        return obj.main_username
+    def get_profile_picture(self, obj):
+        if obj.profile_picture=="":
+            return ""
+        return '%s%s%s' % (settings.SITE_URL,settings.MEDIA_URL, obj.profile_picture)
+
