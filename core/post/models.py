@@ -13,8 +13,8 @@ from django.utils.translation import gettext as _
 
 def user_directory_path(instance, filename):
     now_in_millisecs = int(round(time.time() * 1000))
-    file_extension = splitext(filename)[-1]
-    return 'images/user_{0}/{1}{2}'.format(instance.id,
+    file_extension = splitext(filename)[-1] # [1] or [-1] ?
+    return 'images/user_{0}/{1}{2}'.format(instance.profile.id,
                                            now_in_millisecs,
                                            file_extension)
 
@@ -43,8 +43,8 @@ class Post(models.Model):
     location= models.CharField(max_length=200, blank=True)
     # TODO: pub_date
 
-    created_at = models.DateTimeField(default=datetime.now, blank=True)
-    modified_at = models.DateTimeField(default=datetime.now, blank=True)
+    created_at = models.DateTimeField(default=datetime.now, blank=True) # TODO:
+    modified_at = models.DateTimeField(default=datetime.now, blank=True) # TODO: auto_update?
 
 
 class Comment(models.Model):
@@ -57,7 +57,7 @@ class Like(models.Model):
     post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
 
 class Favorite(models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200)  # TODO: redundancy
     posts = models.ManyToManyField(Post)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=False, null=False)
     many = True

@@ -3,14 +3,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include
 from rest_framework import routers
-router = routers.DefaultRouter()
 from django.conf import settings
 from core.user import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
-
 from core.user.viewSets import ProfileViewSet
 
+
+router = routers.DefaultRouter()
 router.register('profile_info' , ProfileViewSet)
 
 urlpatterns = [
