@@ -1,24 +1,25 @@
+import queue
 import random
 
 from django.http import JsonResponse
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
+from Redis.globals import *
+from apps.notif.models import Notification
 
+from core.user.serializers import ProfileSerializer
 from .models import Post, Favorite, Tag, Comment, Like
 from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer, \
     LikeSerializer
-
 from core.user.models import Profile, UserFollow
 from .models import Post, Favorite
-from core.user.serializers import ProfileSerializer
-
 from .models import Post
 from .serializers import PostSerializerGET, FavoriteSerializer
-
+from django.utils.translation import gettext as _
 
 
 class PostViewSet(mixins.CreateModelMixin,
@@ -36,6 +37,23 @@ class PostViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         # print(self.request.user.profile)
         serializer.save(profile=self.request.user.profile)
+
+    def create(self, request, *args, **kwargs):
+        image = request.FILES.get("image")
+        if image is None:
+            return Response({'error': _('image is required')},
+                            status=HTTP_400_BAD_REQUEST)
+        caption = request.POST.get("caption")
+        location = request.POST.get("location")
+        profile = request.user.profile
+        post = Post.objects.create(image=image, caption=caption, location=location, profile=profile)
+        tag_string = request.POST.get("tag_string")
+        tag_list = str(tag_string).split()
+        for tag in tag_list:
+            t, is_created = Tag.objects.get_or_create(text=tag)
+            post.tags.add(t)
+        return Response({'status': _('succeeded')},
+                        status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -83,12 +101,11 @@ class PostViewSet(mixins.CreateModelMixin,
             if text is None or text=="":
                 return JsonResponse({"error": "empty_field"}, status=HTTP_400_BAD_REQUEST)
             post = Post.objects.get(id=pk)
-            """error of page not found handling"""
-            if post is None:
-                return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
-            comment = Comment.objects.create(text=text, post=post, profile=self.request.user.profile)
+            profile = self.request.user.profile
+            comment = Comment.objects.create(text=text, post=post, profile=profile)
             post.comments.add(comment)
-            return Response({'status': ('succeeded')})
+            queue.enqueue(create_comment_notif, post, profile)
+            return Response({'status': _('succeeded')})
 
     @action(methods=['GET', 'POST'], detail=True)
     def like(self, request, pk):
@@ -103,9 +120,12 @@ class PostViewSet(mixins.CreateModelMixin,
                 return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
             if Like.objects.filter(post=post , profile=self.request.user.profile).exists():
                 return JsonResponse({"error": "already_liked"}, status=HTTP_400_BAD_REQUEST)
-            like = Like.objects.create(post=post, profile=self.request.user.profile)
+            profile = self.request.user.profile
+            like = Like.objects.create(post=post, profile=profile)
             post.likes.add(like)
-            return Response({'status': ('succeeded')})
+            queue.enqueue(create_like_notif, post, profile)
+            return Response({'status': _('succeeded')})
+
 
 
 class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
@@ -113,7 +133,8 @@ class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
     serializer_class = PostSerializerGET
 
     def get_queryset(self):
-        posts = Post.objects.filter(Q(profile__followers__source=self.request.user.profile)|Q(profile=self.request.user.profile) ).distinct().order_by('-pk')
+        posts = Post.objects.filter(Q(profile__followers__source=self.request.user.profile) | Q(
+            profile=self.request.user.profile)).distinct().order_by('-pk')
         return posts
         # return [item.post for item in profiles]
 
@@ -152,7 +173,9 @@ class FavoriteViewSet(mixins.ListModelMixin,
             username = request.user.id
         favorite = Favorite.objects.get(id=pk)
 
-        queryset = favorite.posts.filter(Q(profile__is_public=True) | Q(profile__followers__source=self.request.user.profile) | Q(profile__user=request.user))
+        queryset = favorite.posts.filter(
+            Q(profile__is_public=True) | Q(profile__followers__source=self.request.user.profile) | Q(
+                profile__user=request.user))
         # .filter(user_id=user_id)
 
         page = self.paginate_queryset(queryset)
@@ -168,8 +191,8 @@ class FavoriteViewSet(mixins.ListModelMixin,
 
 
 class TagViewSet(mixins.ListModelMixin,
-                      mixins.RetrieveModelMixin,
-                      GenericViewSet):
+                 mixins.RetrieveModelMixin,
+                 GenericViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
@@ -183,7 +206,9 @@ class TagViewSet(mixins.ListModelMixin,
         #     username = request.user.id
         tag = Tag.objects.get(text=request.GET.get('tag'))
 
-        queryset = tag.posts.filter(Q(profile__is_public=True) | Q(profile__followers__source=self.request.user.profile) | Q(profile__user=request.user))
+        queryset = tag.posts.filter(
+            Q(profile__is_public=True) | Q(profile__followers__source=self.request.user.profile) | Q(
+                profile__user=request.user))
 
         page = self.paginate_queryset(queryset)
         serializer_context = {
@@ -265,3 +290,23 @@ class NameViewSet(mixins.ListModelMixin,
 #         post.comments.add(comment)
 #         return Response({'status': ('succeeded')})
 
+
+def create_comment_notif(post, profile):
+    receiver = Profile.objects.get(id=post.profile.id)
+    notif = Notification(type=comment_type, receiver=receiver, sender=profile, data=post, object=receiver)
+    notif.you = True
+    notif.save()
+    # post_owner = Profile.objects.get(id=post.profile.id)
+    # friends = post_owner.followers
+    # for friend in friends:
+    #     notif = Notification(type=comment_type, receiver=friend, sender=profile, data=post.id)
+    #     notif.save()
+    # n, created = Notification.objects.get_or_create(type=comment_type, receiver=post_owner, sender=profile, data=post.id)
+    # n.you = True
+
+
+def create_like_notif(post, profile):
+    receiver = Profile.objects.get(id=post.profile.id)
+    notif = Notification(type=like_type, receiver=receiver, sender=profile, data=post, object=receiver)
+    notif.you= True
+    notif.save()

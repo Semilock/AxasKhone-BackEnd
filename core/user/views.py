@@ -1,15 +1,19 @@
-#TODO: context to all Profile serializers
-#TODO:TEST GET , POST PROFILE SERIALIZER
-#TODO: email for profile serializer post
-import re
+# TODO: context to all Profile serializers
+# TODO:TEST GET , POST PROFILE SERIALIZER
+# TODO: email for profile serializer post
 
+from django.contrib.sites import requests
 from rest_framework import generics
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
-
+from config.const import *
+from Redis.globals import *
+from apps.notif.models import Notification
+from config.const import bio_max_length
+from config.utils import validate_charfield_input
 from core.user.models import UserFollow, UserFollowRequest
 
 from core.post.models import Tag
@@ -26,9 +30,6 @@ import json
 # import requests
 
 from django.contrib.auth.password_validation import validate_password
-
-email_pattern = re.compile("^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$")
-username_pattern = re.compile("^[a-zA-Z][a-zA-Z.]+|[a-zA-Z_]+")
 
 
 # @permission_classes((AllowAny,))
@@ -95,7 +96,7 @@ class RegisterValidation(APIView):
             validate_password(password)
         except:
             return JsonResponse({"error": _("weak_password")}, status=HTTP_400_BAD_REQUEST)
-        return Response({'status' : _('succeeded')})
+        return Response({'status': _('succeeded')})
 
 
 @permission_classes((AllowAny,))
@@ -110,12 +111,14 @@ class Register(APIView):
         bio = request.POST.get("bio")
         image = request.FILES.get("profile_picture")
         username = request.POST.get("username")
-        if username is None or username=="":
+        if username is None or username == "":
             return JsonResponse({"error": _("please enter username")}, status=HTTP_400_BAD_REQUEST)
         if not username_pattern.match(username):
             return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
-        if len(username)<5:
+        if len(username) < 5:
             return JsonResponse({"error": _("bad username")}, status=HTTP_400_BAD_REQUEST)
+        if not validate_charfield_input(bio, bio_max_length):
+            return JsonResponse({"error": _("long bio")}, status=HTTP_400_BAD_REQUEST)
         # if email is None or email == "":
         #     return Response({'error': _('empty_email')},
         #                     status=HTTP_400_BAD_REQUEST)
@@ -156,8 +159,6 @@ class Register(APIView):
         return Response({'status': _('succeeded')})
 
 
-
-
 @permission_classes((AllowAny,))
 class ForgotPassword(APIView):
     """
@@ -170,7 +171,7 @@ class ForgotPassword(APIView):
 
     @staticmethod
     def send_password_reset_email(username, email, password_reset_url):
-        email_api_url = 'http://192.168.10.66:80/api/send/mail' # TODO: shouldn't be someplace else?
+        email_api_url = 'http://192.168.10.66:80/api/send/mail'  # TODO: shouldn't be someplace else?
         subject = "Password reset request for Akkaskhuneh"  # TODO: translate it later
         body = """
                <p>Hello dear {0},</p>
@@ -200,18 +201,18 @@ class ForgotPassword(APIView):
             password_reset_request.set_token(token)
             password_reset_request.save()
 
-            host_root = request.build_absolute_uri('/') # example: http://127.0.0.1:8000/
+            host_root = request.build_absolute_uri('/')  # example: http://127.0.0.1:8000/
             password_reset_url = '{0}user/reset_password/{1}/'.format(host_root, token)
-            send_mail_response_code = \
-                ForgotPassword.send_password_reset_email(user.profile.main_username,
-                                                         user.email,
-                                                         password_reset_url)
-            if send_mail_response_code == 200:
-                return JsonResponse({"status": _("Succeeded. Please check your email.")},
-                                    status=HTTP_200_OK)
-            else:
-                return JsonResponse({"error": _("Failure in sending email. Try later")},
-                                    status=send_mail_response_code)
+            # send_mail_response_code = \
+            queue.enqueue(ForgotPassword.send_password_reset_email, user.profile.main_username,
+                          user.email,
+                          password_reset_url)
+            # if send_mail_response_code == 200:
+            return JsonResponse({"status": _("Succeeded. Please check your email.")},
+                                status=HTTP_200_OK)
+            # else:
+            #     return JsonResponse({"error": _("Failure in sending email. Try later")},
+            #                         status=send_mail_response_code)
 
         except User.DoesNotExist:
             return JsonResponse({"error": _("Wrong_email")},
@@ -295,7 +296,7 @@ class ProfileInfo(APIView):
     def get(self, request):
         user = request.user
         profile = Profile.objects.get(user=user)
-        serializer = ProfileSerializer(profile,context={'request': request}).data
+        serializer = ProfileSerializer(profile, context={'request': request}).data
         return JsonResponse(serializer)
 
     """
@@ -310,7 +311,7 @@ class ProfileInfo(APIView):
         new_profile_picture = request.data.get("profile_picture")
         user = request.user
         if Profile.objects.filter(main_username=new_username).count() > 0 \
-                and not Profile.objects.get(user=user).main_username==new_username:
+                and not Profile.objects.get(user=user).main_username == new_username:
             return Response({'error': _('this username is already taken')},
                             status=HTTP_400_BAD_REQUEST)
         elif User.objects.filter(email=new_email).count() > 0 and not user.email == new_email:
@@ -319,13 +320,15 @@ class ProfileInfo(APIView):
         if not new_email is None:
             if not email_pattern.match(new_email):
                 return Response({'error': _('bad_email')},
-                            status=HTTP_400_BAD_REQUEST)
+                                status=HTTP_400_BAD_REQUEST)
             user.email = new_email
             user.username = new_email
         profile = Profile.objects.get(user=user)
         if not new_fullname is None:
             profile.fullname = new_fullname
         if not new_bio is None:
+            if not validate_charfield_input(new_bio, bio_max_length):
+                return JsonResponse({"error": _("long bio")}, status=HTTP_400_BAD_REQUEST)
             profile.bio = new_bio
         if not new_username is None:
             profile.main_username = new_username
@@ -336,60 +339,36 @@ class ProfileInfo(APIView):
         return Response({'status': _('succeeded')})
 
 
-class UsersViewApi(APIView):
-    def get(self, request):
-        return JsonResponse({'user': request.user.username})
-
-    def post(self, request):
-        return JsonResponse({'user': request.user.username})
-
-
-class RegisterComplementView(APIView):
-    def post(self, request):
-        if not request.user:
-            return Response({'error': _('failed_user')})
-        fullname = request.data.get('fullname')
-        username = request.data.get("username")
-        bio = request.data.get("bio")
-        profile = Profile.objects.get(user=request.user)
-        profile.fullname = fullname
-        profile.bio = bio
-        profile.main_username = username
-        profile.save()
-        request.user.save()
-        return Response({'status': _('succeeded')})
-
-
 class InviteFriends(APIView):
     def post(self, request):
-        contacts=[]
+        contacts = []
         contact_list = request.data.get('contact_list')
         for contact in contact_list:
             serializer = {
-                "contact_email": contact["email"], "contact.name": contact["name"]
+                "contact_email": contact["email"], "contact_name": contact["name"]
             }
             contact_user = Profile.objects.filter(user__email=contact["email"]).first()
             if contact_user is not None:
                 serializer['user'] = ProfileSerializer(contact_user, context={'request': request}).data
             if contact_user is None:
-                serializer['user'] = "NOT_FOUND"
+                serializer['user'] = "not_found"
             contacts.append(serializer)
-        return JsonResponse({"contacts" :contacts})
+        return JsonResponse({"contacts": contacts})
 
 class Follow(APIView):
-    def post (self , request):
-        source= request.user.profile
+    def post(self, request):
+        source = request.user.profile
         destination_username = request.data.get('username')
-        destination = Profile.objects.filter(main_username = destination_username).first()
+        destination = Profile.objects.filter(main_username=destination_username).first()
         if destination is None:
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
-        if(destination.is_public):
-            UserFollow.objects.create(source = source , destination = destination)
+        if destination.is_public:
+            queue.enqueue(create_user_follow, destination, source)
             return JsonResponse({"status": "done"})
         else:
-            UserFollowRequest.objects.create(source = source , destination = destination)
+            queue.enqueue(create_user_follow_request, destination, source)
             return JsonResponse({"statuas": "follow_request_sent"})
 
 class Accept(APIView):
@@ -402,9 +381,61 @@ class Accept(APIView):
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
         if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
-            UserFollow.objects.create(source=source, destination=destination)
+            queue.enqueue(create_accept_follow_request, destination, source)
             return JsonResponse({"status": "done"})
         else:
             return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
+#
+# class FollowerList(generics.ListCreateAPIView):
+#     def get(self, request):a bit bug debuged!
+#         follower_list=[]
+#         followers = UserFollow.objects.filter(destination= request.user.profile)
+#         for follower in followers:
+#             follower_profile = ProfileSerializer(follower.source,  context={'request': request} ).data
+#             follower_list.append(follower_profile)
+#         return JsonResponse({"follower_list":follower_list})
+#
+# class FollowingList(APIView):
+#     def get(self, request):
+#         following_list=[]
+#         followings = UserFollow.objects.filter(source= request.user.profile)
+#         for following in followings:
+#             following_profile = ProfileSerializer(following.destination,  context={'request': request} ).data
+#             following_list.append(following_profile)
+#         return JsonResponse({"following_list":following_list})
 
+
+def create_user_follow(destination, source):
+    UserFollow.objects.create(source=source, destination=destination)
+    notif = Notification(type=follow_type, receiver=destination, sender=source, object=destination)
+    notif.you = True
+    notif.save()
+    # create_follow_notif_for_friends(destination, source)
+
+
+# def create_follow_notif_for_friends(destination, source):
+#     friends = source.followers.list
+#     for friend in friends:
+#         if not friend==destination:
+#             print(friend.main_username)
+#             notif = Notification(type=follow_type, receiver=friend, sender=source, object=destination)
+#             notif.you = False
+#             notif.save()
+
+
+def create_user_follow_request(destination, source):
+    UserFollowRequest.objects.create(source=source, destination=destination)
+    notif = Notification(type=follow_request_type, receiver=destination, sender=source, object=destination)
+    notif.you = True
+    notif.save()
+
+
+def create_accept_follow_request(destination, source):
+    UserFollow.objects.create(source=source, destination=destination)
+    notif = Notification(type=accept_follow_request_type, receiver=source, sender=destination, object=source)
+    notif.you = True
+    notif.save()
+    accepting_user = Notification(type=follow_type, you=True, receiver=destination, sender=source, object=source)
+    accepting_user.save()
+    # create_follow_notif_for_friends(destination, source)
 

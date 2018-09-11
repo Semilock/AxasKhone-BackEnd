@@ -19,23 +19,9 @@ class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin , RetrieveModelMi
     #     elif self.request.method == 'GET' :
     #         return ProfileSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
-
-    # def list(self, request, *args, **kwargs):
-    #     queryset = list(self.filter_queryset(self.get_queryset()))
-    #
-    #     queryset= sorted(queryset, key=lambda x: -x.follower_number())
-    #
-    #     page = self.paginate_queryset(queryset)
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-    #
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return self.get_paginated_response(serializer.data)
-    #
-    #     # print("Stuff")
+    # def retrieve(self, request, *args, **kwargs):
+        # super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
+        # print("Stuff")
 
 class FollowerListViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = UserFollow.objects.all()
