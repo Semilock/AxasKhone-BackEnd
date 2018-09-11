@@ -12,6 +12,8 @@ from Redis.globals import *
 from apps.notif.models import Notification
 
 from core.user.serializers import ProfileSerializer
+
+from config.utils import LD
 from .models import Post, Favorite, Tag, Comment, Like
 from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer, \
     LikeSerializer
@@ -88,7 +90,6 @@ class PostViewSet(mixins.CreateModelMixin,
     # def post(self, request, *args, **kwargs):
     #     return self.create(request, *args, **kwargs)
 
-
     @action(methods=['GET', 'POST'], detail=True)
     def comment(self, request, pk):
         if self.request.method == 'GET':
@@ -98,7 +99,7 @@ class PostViewSet(mixins.CreateModelMixin,
             return self.get_paginated_response(serializer.data)
         elif self.request.method == 'POST':
             text = request.data.get("text")
-            if text is None or text=="":
+            if text is None or text == "":
                 return JsonResponse({"error": "empty_field"}, status=HTTP_400_BAD_REQUEST)
             post = Post.objects.get(id=pk)
             profile = self.request.user.profile
@@ -118,14 +119,13 @@ class PostViewSet(mixins.CreateModelMixin,
             post = Post.objects.get(id=pk)
             if post is None:
                 return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
-            if Like.objects.filter(post=post , profile=self.request.user.profile).exists():
+            if Like.objects.filter(post=post, profile=self.request.user.profile).exists():
                 return JsonResponse({"error": "already_liked"}, status=HTTP_400_BAD_REQUEST)
             profile = self.request.user.profile
             like = Like.objects.create(post=post, profile=profile)
             post.likes.add(like)
             queue.enqueue(create_like_notif, post, profile)
             return Response({'status': _('succeeded')})
-
 
 
 class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
@@ -197,7 +197,7 @@ class TagViewSet(mixins.ListModelMixin,
     serializer_class = TagSerializer
 
     def get_queryset(self):
-        queryset = list(sorted(Tag.objects.all().order_by('-number')[:20], key=lambda x:random.random()))
+        queryset = list(sorted(Tag.objects.all().order_by('-number')[:20], key=lambda x: random.random()))
         return queryset
 
     @action(methods=['GET'], detail=False)
@@ -223,23 +223,28 @@ class TagViewSet(mixins.ListModelMixin,
 
     @action(methods=['POST'], detail=False)
     def search(self, request):
+        if(request.data.get('tag')==None):
+            return Response({"error":"empty_field"})
         pattern_set = request.data.get('tag').split()
-        query=Q()
+        query = Q()
         for pattern in pattern_set:
             query = query | Q(text__contains=pattern)
-        queryset = Tag.objects.filter(query).distinct().order_by('number') #TODO: order by (number used)
-        queryset_paginate = self.paginate_queryset(queryset)
+        queryset = Tag.objects.filter(query).distinct().order_by('number')  # TODO: order by (number used)
 
-        # serializer = ProfileSerializer(queryset_paginate, context={'request': request}, many=True)
-        # return self.get_paginated_response(serializer.data)
-
-        serializer=[]
-        for item in queryset_paginate:
-            serializer.append(item.text)
-        return self.get_paginated_response(serializer)
+        query_list = []
+        for item in queryset:
+            distance = len(str(item.text))
+            for pattern in pattern_set:
+                distance = min(LD(item.text, pattern), distance)
+            query_list.append({"text": item.text, 'distance': distance})
+        query_list = sorted(query_list, key=lambda x: x['distance'])[:30]
+        result = []
+        for item in query_list:
+            result.append(item['text'])
+        return Response({"results": result})
 
 class NameViewSet(mixins.ListModelMixin,
-                      GenericViewSet):
+                  GenericViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
@@ -248,12 +253,27 @@ class NameViewSet(mixins.ListModelMixin,
 
     @action(methods=['POST'], detail=False)
     def search(self, request):
+        if (request.data.get('tag') == None):
+            return Response({"error":"empty_field"})
         pattern_set = request.data.get('name').split()
         query = Q()
         for pattern in pattern_set:
-            query = query | Q(fullname__contains=pattern) | Q(main_username__contains=pattern)
-        queryset = Profile.objects.filter(query).distinct()  # TODO: order by (?)
-        queryset_paginate= self.paginate_queryset(queryset)
+            query = query | Q(fullname__contains=pattern)
+        queryset = Profile.objects.filter(query).distinct()
+
+        query_list = []
+        for item in queryset:
+            distance = len(str(item.fullname))
+            for pattern in pattern_set:
+                distance = min(LD(item.fullname, pattern), distance)
+            query_list.append({"fullname": item.fullname, 'distance': distance})
+        query_list=sorted(query_list, key= lambda x: x['distance'])[:30]
+        result=[]
+        for item in query_list:
+            result.append(item['fullname'])
+        return Response({"results": result})
+
+        queryset_paginate = self.paginate_queryset(queryset)
         serializer = ProfileSerializer(queryset_paginate, context={'request': request}, many=True)
         return Response(serializer.data)
         # serializer = []
@@ -261,6 +281,7 @@ class NameViewSet(mixins.ListModelMixin,
         #     serializer.append(item.main_username)
         # return self.get_paginated_response(serializer)
         #  #ALGORITHM DISTANCE
+
 
 # class CommentViewSet(mixins.CreateModelMixin,
 #                   mixins.RetrieveModelMixin,
@@ -308,5 +329,5 @@ def create_comment_notif(post, profile):
 def create_like_notif(post, profile):
     receiver = Profile.objects.get(id=post.profile.id)
     notif = Notification(type=like_type, receiver=receiver, sender=profile, data=post, object=receiver)
-    notif.you= True
+    notif.you = True
     notif.save()

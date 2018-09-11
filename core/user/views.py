@@ -364,8 +364,8 @@ class Follow(APIView):
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
-        if destination.is_public:
-            queue.enqueue(create_user_follow, destination, source)
+        if(destination.is_public):
+            UserFollow.objects.create(source = source , destination = destination)
             return JsonResponse({"status": "done"})
         else:
             queue.enqueue(create_user_follow_request, destination, source)
