@@ -59,6 +59,18 @@ class PostSerializerGET(serializers.ModelSerializer):
 
     # def get_tag_text(self,obj):
     #     return obj.tags.text
+class PostSerializerNOTIF(serializers.ModelSerializer):
+    tags = TagSerializer(many=True)
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = ('image', 'caption', 'pk','location', 'tags')
+
+    def get_image(self,instance):
+        return '%s%s%s' % (settings.SITE_URL, settings.MEDIA_URL, instance.image)
+
+
 
 #TODO: update should change'tags'
 class PostSerializerPOST(serializers.ModelSerializer):

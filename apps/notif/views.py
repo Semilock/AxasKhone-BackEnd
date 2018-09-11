@@ -32,6 +32,7 @@ class SaveToDataBase(APIView):
             notif.save()
             if id > 0:
                 notif.data = id
+                notif.save()
             if type == follow_type:
                 user_followers = UserFollow.objects.filter(destination=sender)
                 # friends= [item.source for item in user_followers]
