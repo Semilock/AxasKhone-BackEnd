@@ -13,8 +13,8 @@ from django.utils.translation import gettext as _
 
 def user_directory_path(instance, filename):
     now_in_millisecs = int(round(time.time() * 1000))
-    file_extension = splitext(filename)[-1]
-    return 'images/user_{0}/{1}{2}'.format(instance.id,
+    file_extension = splitext(filename)[-1] # [1] or [-1] ?
+    return 'images/user_{0}/{1}{2}'.format(instance.profile.id,
                                            now_in_millisecs,
                                            file_extension)
 

@@ -36,6 +36,7 @@ class Profile(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now_add=True)
+    email_verified = models.BooleanField(default=False, blank=False, null=False)
 
 
 @receiver(post_save, sender=User)
@@ -101,9 +102,35 @@ class PasswordResetRequests(models.Model):
 
     def expired(self):
         # test
-        print("req_date")
-        print(self.req_date)
-        print("now")
-        print(timezone.now())
+        # print("req_date")
+        # print(self.req_date)
+        # print("now")
+        # print(timezone.now())
         # test
-        return self.req_date < timezone.now() - datetime_module.timedelta(days=1)
+        return self.created_at < timezone.now() - datetime_module.timedelta(days=1)
+
+
+class EmailVerificationRequests(models.Model):
+    profile = models.OneToOneField(Profile, primary_key=True, blank=False, null=False, on_delete=models.CASCADE)
+    # uuid = models.UUIDField(primary_key=True,
+    #                         default=uuid.uuid4, editable=False) #  TODOdone: hash it later
+    hashed_token = models.BinaryField(max_length=32, null=False, blank=False, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @staticmethod
+    def hash_token(token):
+        """
+        Takes a string, hashes it and returns the resulted bytes.
+        :param token: ASCII string
+        :return: bytes string of length at most 32
+        """
+        hashed_token = sha256(token.encode('ascii'))
+        hashed_token = hashed_token.digest()[:min(hashed_token.digest_size, 32)]
+        return hashed_token
+
+    def set_token(self, token):
+        hashed_token = PasswordResetRequests.hash_token(token)
+        self.hashed_token = hashed_token
+
+    def expired(self):
+        return self.created_at < timezone.now() - datetime_module.timedelta(minutes=30)

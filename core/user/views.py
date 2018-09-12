@@ -22,11 +22,12 @@ from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from core.user.models import Profile, PasswordResetRequests
+from core.user.models import Profile, PasswordResetRequests, EmailVerificationRequests
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
 import uuid
-import json
+from config.utils import send_mail, VerifiedPermission
+# import json
 # import requests
 
 from django.contrib.auth.password_validation import validate_password
@@ -171,21 +172,23 @@ class ForgotPassword(APIView):
 
     @staticmethod
     def send_password_reset_email(username, email, password_reset_url):
-        email_api_url = 'http://192.168.10.66:80/api/send/mail'  # TODO: shouldn't be someplace else?
+        # email_api_url = 'http://192.168.10.66:80/api/send/mail'  # TODO: shouldn't be someplace else?
         subject = "Password reset request for Akkaskhuneh"  # TODO: translate it later
         body = """
                <p>Hello dear {0},</p>
                <p>You can reset your password <a href="{1}">here. Or, ignore this message.</p>
                """.format(username, password_reset_url)  # TODO: translate it later
-        payload = {
-            "to": email,
-            "body": body,
-            "subject": subject
-        }
-        payload = json.dumps(payload)  # converting to json
-        headers = {'agent-key': '5pWlxEtieM', 'content-type': 'application/json'}
-        result = requests.post(email_api_url, headers=headers, data=payload)
-        return result.status_code
+        # payload = {
+        #     "to": email,
+        #     "body": body,
+        #     "subject": subject
+        # }
+        # payload = json.dumps(payload)  # converting to json
+        # headers = {'agent-key': '5pWlxEtieM', 'content-type': 'application/json'}
+        # result = requests.post(email_api_url, headers=headers, data=payload)
+        # return result.status_code
+
+        return send_mail(email, subject, body)
 
     def post(self, request):
         email = request.data.get('email')
@@ -203,16 +206,19 @@ class ForgotPassword(APIView):
 
             host_root = request.build_absolute_uri('/')  # example: http://127.0.0.1:8000/
             password_reset_url = '{0}user/reset_password/{1}/'.format(host_root, token)
-            # send_mail_response_code = \
-            queue.enqueue(ForgotPassword.send_password_reset_email, user.profile.main_username,
-                          user.email,
-                          password_reset_url)
-            # if send_mail_response_code == 200:
-            return JsonResponse({"status": _("Succeeded. Please check your email.")},
-                                status=HTTP_200_OK)
-            # else:
-            #     return JsonResponse({"error": _("Failure in sending email. Try later")},
-            #                         status=send_mail_response_code)
+            send_mail_response_code = \
+                ForgotPassword.send_password_reset_email(user.profile.main_username,
+                                                         user.email,
+                                                         password_reset_url)
+            # queue.enqueue(ForgotPassword.send_password_reset_email, user.profile.main_username,
+            #               user.email,
+            #               password_reset_url)
+            if send_mail_response_code == 200:
+                return JsonResponse({"status": _("Succeeded. Please check your email.")},
+                                    status=HTTP_200_OK)
+            else:
+                return JsonResponse({"error": _("Failure in sending email. Try later")},
+                                    status=send_mail_response_code)
 
         except User.DoesNotExist:
             return JsonResponse({"error": _("Wrong_email")},
@@ -263,6 +269,76 @@ class ResetPassword(APIView):
             return JsonResponse({"error": _("Invalid_request")},
                                 status=HTTP_400_BAD_REQUEST)
 
+
+class VerificationRequest(APIView):
+
+    @staticmethod
+    def send_password_reset_email(username, email, email_verification_url):
+        # email_api_url = 'http://192.168.10.66:80/api/send/mail'  # TODO: shouldn't be someplace else?
+        subject = "Email verification for Akkaskhuneh"  # TODO: translate it later
+        body = """
+                   <p>Hello dear {0},</p>
+                   <p>You can verify your email <a href="{1}">here</a>. Until you do, your access will be limited.</p>
+                   """.format(username, email_verification_url)  # TODO: translate it later
+
+        return send_mail(email, subject, body)
+
+    def post(self, request):
+        user = request.user
+        profile = user.profile
+        if profile.email_verified:
+            return JsonResponse({"error": _("Already verified")},
+                                status=HTTP_400_BAD_REQUEST)
+        try:
+            EmailVerificationRequests.objects.get(profile=profile).delete()
+        except EmailVerificationRequests.DoesNotExist:
+            pass
+        email_verification_request = EmailVerificationRequests(profile=profile)
+        token = uuid.uuid4().hex
+        email_verification_request.set_token(token)
+        email_verification_request.save()
+
+        host_root = request.build_absolute_uri('/')  # example: http://127.0.0.1:8000/
+        email_verification_url = '{0}user/verify_email/{1}/'.format(host_root, token)
+        send_mail_response_code = \
+            VerificationRequest.send_password_reset_email(profile.main_username,
+                                                          user.email,
+                                                          email_verification_url)
+        # queue.enqueue(ForgotPassword.send_password_reset_email, user.profile.main_username,
+        #               user.email,
+        #               password_reset_url)
+        if send_mail_response_code == 200:
+            return JsonResponse({"status": _("Succeeded. Please check your email.")},
+                                status=HTTP_200_OK)
+        else:
+            return JsonResponse({"error": _("Failure in sending email. Try later")},
+                                status=send_mail_response_code)
+
+
+@permission_classes((AllowAny,))
+class VerifyEmail(APIView):
+    def post(self, request, email_verification_token):
+        # TODO: should be logged
+
+        try:
+            email_verification_request = EmailVerificationRequests.objects.get(
+                hashed_token=EmailVerificationRequests.hash_token(email_verification_token)
+            )  # may throw DoesNotExist
+            if email_verification_request.expired():
+                return JsonResponse({"error": _("Invalid_request")},  # TODO: error: expired ?
+                                    status=HTTP_400_BAD_REQUEST)
+
+            profile = email_verification_request.profile
+            if profile.email_verified:
+                return JsonResponse({"error": _("Already verified")},  # is this line reachable?
+                                    status=HTTP_400_BAD_REQUEST)
+            profile.email_verified = True
+            profile.save()
+            email_verification_request.delete()
+            return JsonResponse({"status": _("succeeded")})
+        except EmailVerificationRequests.DoesNotExist:
+            return JsonResponse({"error": _("Invalid_request")},
+                                status=HTTP_400_BAD_REQUEST)
 
 class ChangePassword(APIView):
     """"
@@ -339,6 +415,7 @@ class ProfileInfo(APIView):
         return Response({'status': _('succeeded')})
 
 
+@permission_classes((VerifiedPermission,))
 class InviteFriends(APIView):
     def post(self, request):
         contacts = []
@@ -355,6 +432,8 @@ class InviteFriends(APIView):
             contacts.append(serializer)
         return JsonResponse({"contacts": contacts})
 
+
+@permission_classes((VerifiedPermission,))
 class Follow(APIView):
     def post(self, request):
         source = request.user.profile
@@ -372,7 +451,7 @@ class Follow(APIView):
             return JsonResponse({"statuas": "follow_request_sent"})
 
 
-
+@permission_classes((VerifiedPermission,))
 class Accept(APIView):
     def post(self, request):
         destination = request.user.profile
@@ -387,6 +466,8 @@ class Accept(APIView):
             return JsonResponse({"status": "done"})
         else:
             return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
+
+
 #
 # class FollowerList(generics.ListCreateAPIView):
 #     def get(self, request):a bit bug debuged!
