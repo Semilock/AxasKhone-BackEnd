@@ -1,5 +1,5 @@
 from rest_framework import viewsets, mixins
-from rest_framework.mixins import UpdateModelMixin, RetrieveModelMixin
+from rest_framework.mixins import UpdateModelMixin, RetrieveModelMixin, ListModelMixin
 
 from core.user.models import Profile , UserFollow
 from rest_framework.viewsets import GenericViewSet
@@ -7,7 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 from .serializers import ProfileSerializer
 
 
-class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin , RetrieveModelMixin ):
+class ProfileViewSet(viewsets.GenericViewSet, UpdateModelMixin , RetrieveModelMixin, ListModelMixin ):
 
     queryset = Profile.objects.all()
     lookup_field = 'main_username'
