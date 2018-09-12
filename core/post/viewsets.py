@@ -105,7 +105,7 @@ class PostViewSet(mixins.CreateModelMixin,
             profile = self.request.user.profile
             comment = Comment.objects.create(text=text, post=post, profile=profile)
             post.comments.add(comment)
-            queue.enqueue(create_comment_notif, post, profile)
+            # queue.enqueue(create_comment_notif, post, profile)
             return Response({'status': _('succeeded')})
 
     @action(methods=['GET', 'POST'], detail=True)
@@ -253,7 +253,7 @@ class NameViewSet(mixins.ListModelMixin,
 
     @action(methods=['POST'], detail=False)
     def search(self, request):
-        if (request.data.get('tag') == None):
+        if (request.data.get('name') == None):
             return Response({"error":"empty_field"})
         pattern_set = request.data.get('name').split()
         query = Q()

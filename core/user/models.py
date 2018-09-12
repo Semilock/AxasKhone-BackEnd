@@ -27,15 +27,15 @@ def profile_pic_directory_path(instance, filename):
 
 
 class Profile(models.Model):
-    main_username = models.CharField(max_length=200, blank=False)
+    main_username = models.CharField(max_length=50, blank=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    fullname = models.CharField(max_length=200, blank=True)
-    bio = models.CharField(max_length=bio_max_length, blank=True)
+    fullname = models.CharField(max_length=50, blank=True)
+    bio = models.CharField(max_length=200, blank=True)
     profile_picture = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
     is_public = models.BooleanField(default=False, blank=True)
 
-    created_at = models.DateTimeField(default=datetime.now, blank=True)
-    modified_at = models.DateTimeField(default=datetime.now, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now_add=True)
 
 
 @receiver(post_save, sender=User)
@@ -53,7 +53,7 @@ class UserFollow(models.Model):
     source = models.ForeignKey(Profile, related_name='followings', on_delete=models.CASCADE)
     destination = models.ForeignKey(Profile, related_name = 'followers', on_delete=models.CASCADE)
 
-    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         index_together = [
             ('source', 'created_at'),
@@ -64,7 +64,7 @@ class UserFollowRequest(models.Model):
     source = models.ForeignKey(Profile, related_name='sender', on_delete=models.CASCADE)
     destination = models.ForeignKey(Profile, related_name = 'reciver', on_delete=models.CASCADE)
 
-    created_at = models.DateTimeField(default=datetime.now, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         index_together = [
             ('source', 'created_at'),
@@ -77,7 +77,7 @@ class PasswordResetRequests(models.Model):
     # uuid = models.UUIDField(primary_key=True,
     #                         default=uuid.uuid4, editable=False) #  TODOdone: hash it later
     hashed_token = models.BinaryField(max_length=32, null=False, blank=False, editable=False)
-    req_date = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     @staticmethod
     def hash_token(token):

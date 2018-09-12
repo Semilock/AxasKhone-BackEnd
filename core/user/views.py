@@ -371,6 +371,8 @@ class Follow(APIView):
             queue.enqueue(create_user_follow_request, destination, source)
             return JsonResponse({"statuas": "follow_request_sent"})
 
+
+
 class Accept(APIView):
     def post(self, request):
         destination = request.user.profile

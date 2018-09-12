@@ -19,7 +19,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     following_number = serializers.SerializerMethodField()
     profile_picture = serializers.SerializerMethodField()
 
-    user = UserSerializer()
+    # user = UserSerializer()
     class Meta:
         model = Profile
         fields = ('fullname', 'bio', 'main_username', 'is_following', 'is_public', 'email', 'follower_number', 'following_number', 'profile_picture' )

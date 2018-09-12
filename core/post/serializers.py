@@ -42,7 +42,8 @@ class CommentSerializer(serializers.ModelSerializer):
     user_picture = serializers.SerializerMethodField()
     class Meta:
         model = Comment
-        fields = ('text', 'username','user_picture')
+        fields = ('text', 'username','user_picture', 'created_at')
+        read_only_fields = ('created_at',)
 
     def get_username(self, obj):
         return obj.profile.main_username
@@ -61,9 +62,9 @@ class PostSerializerGET(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('url', 'image', 'caption', 'pk', 'profile', 'location', 'tags', 'is_liked', 'like_number', 'comment_number')
+        fields = ('url', 'image', 'caption', 'pk', 'profile', 'location', 'tags', 'is_liked', 'like_number', 'comment_number', 'created_at')
 
-        read_only_fields = ('pk',)
+        read_only_fields = ('pk', 'created_at')
 
     def get_is_liked(self, obj):
         return Like.objects.filter(profile=self.context.get('request').user.profile, post=obj).exists()
