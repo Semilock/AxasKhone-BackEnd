@@ -253,7 +253,7 @@ class TagViewSet(mixins.ListModelMixin,
 
     @action(methods=['POST'], detail=False)
     def search(self, request):
-        if(request.data.get('tag')==None):
+        if(request.data.get('tag')==None or request.data.get('tag') =="" or request.data.get('tag') ==" "):
             return Response({"error":"empty_field"})
         pattern_set = request.data.get('tag').split()
         query = Q()
@@ -283,7 +283,7 @@ class NameViewSet(mixins.ListModelMixin,
 
     @action(methods=['POST'], detail=False)
     def search(self, request):
-        if (request.data.get('name') == None):
+        if (request.data.get('name') == None or request.data.get('name') =="" or request.data.get('name') ==" "):
             return Response({"error":"empty_field"})
         pattern_set = request.data.get('name').split()
         query = Q()
