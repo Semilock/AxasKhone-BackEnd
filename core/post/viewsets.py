@@ -131,7 +131,8 @@ class PostViewSet(mixins.CreateModelMixin,
             if post is None:
                 return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
             if Like.objects.filter(post=post, profile=self.request.user.profile).exists():
-                return JsonResponse({"error": "already_liked"}, status=HTTP_400_BAD_REQUEST)
+                Like.objects.get(post=post, profile=self.request.user.profile).delete()
+                return Response({'status': _('unliked')})
             profile = self.request.user.profile
             like = Like.objects.create(post=post, profile=profile)
             post.likes.add(like)
@@ -145,6 +146,16 @@ class PostViewSet(mixins.CreateModelMixin,
                     }
             queue.enqueue(json.dumps(data))
             return Response({'status': _('succeeded')})
+    #
+    # def unlike(self, request, pk):
+    #     post = Post.objects.get(id=pk)
+    #     if post is None:
+    #         return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
+    #     if Like.objects.filter(post=post, profile=self.request.user.profile).exists():
+    #         Like.objects.get(post=post, profile=self.request.user.profile).delete()
+    #         return Response({'status': _('succeeded')})
+    #     return Response({"error": "already unliked"})
+
 
 
 class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
