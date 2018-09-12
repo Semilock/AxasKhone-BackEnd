@@ -196,10 +196,10 @@ logging.config.dictConfig({
     'formatters': {
         'default': {
             # exact format is not important, this is the minimum information
-            'format': '%(asctime)s %(name)-12s %(levelname)-8s: %(message)s',
+            'format': '%(asctime)s %(pathname)-12s %(levelname)-8s: %(message)s',
         },
         'verbose': {
-            'format': '{levelname:<8} {asctime} {module} {process:d} {thread:d}: {message}',
+            'format': '{levelname:<8} {asctime} {pathname} {process:d} {thread:d}: {message}',
             'style': '{',
         },
         'django.server': DEFAULT_LOGGING['formatters']['django.server'],
@@ -225,7 +225,6 @@ logging.config.dictConfig({
             'formatter': 'verbose',
             'filename': 'log.log',
         },
-        # Add Handler for Sentry for `warning` and above
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',

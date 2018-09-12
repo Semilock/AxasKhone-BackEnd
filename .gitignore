@@ -21,6 +21,8 @@ profile_photos
 env
 venv
 venvg
+profile_photos
+images
 .idea
 *.xml
 
