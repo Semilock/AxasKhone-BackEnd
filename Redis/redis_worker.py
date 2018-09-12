@@ -4,7 +4,7 @@ import requests
 import redis
 import sys
 
-sys.path.insert(1, "/home/arghavan/rahnema/back/")
+sys.path.insert(1, "/home/kiana/akaskhoonemain/back/")
 
 from Redis.redis_queue import SimpleQueue
 from os import environ

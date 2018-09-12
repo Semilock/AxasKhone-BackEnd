@@ -456,7 +456,8 @@ class Follow(APIView):
         if destination is None:
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
         if UserFollow.objects.filter(source=source, destination=destination).exists():
-            return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
+            UserFollow.objects.get(source=source, destination=destination).delete()
+            return JsonResponse({"status": "unfollowed"})
         if destination.is_public:
             UserFollow.objects.create(source=source, destination=destination)
             data = {"type": follow_type,
@@ -469,6 +470,9 @@ class Follow(APIView):
             queue.enqueue(json.dumps(data))
             return JsonResponse({"status": "done"})
         else:
+            if UserFollowRequest.objects.filter(source=source, destination=destination).exists():
+                UserFollowRequest.objects.filter(source=source, destination=destination).delete()
+                return JsonResponse({"status": "unfollowed"})
             UserFollowRequest.objects.create(source=source, destination=destination)
             data = {"type": follow_request_type,
                     "receiver": destination.id,
@@ -480,6 +484,19 @@ class Follow(APIView):
             queue.enqueue(json.dumps(data))
             return JsonResponse({"statuas": "follow_request_sent"})
 
+#
+# @permission_classes((VerifiedPermission,))
+# class Unfollow(APIView):
+#     def post(self, request):
+#         source = request.user.profile
+#         destination_username = request.data.get('username')
+#         destination = Profile.objects.filter(main_username=destination_username).first()
+#         if destination is None:
+#             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
+#         if UserFollow.objects.filter(source=source, destination=destination).exists():
+#             UserFollow.objects.get(source=source, destination=destination).delete()
+#             return JsonResponse({"status": "succeeded"})
+#         return JsonResponse({"status": "already_unfollowed"})
 
 @permission_classes((VerifiedPermission,))
 class Accept(APIView):
@@ -492,6 +509,7 @@ class Accept(APIView):
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
         if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
+            UserFollowRequest.objects.filter(source=source, destination=destination).delete()
             UserFollow.objects.create(source=source, destination=destination)
             data = {"type": accept_follow_request_type,
                     "receiver": source.id,
