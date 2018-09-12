@@ -215,19 +215,22 @@ class ForgotPassword(APIView):
 
             host_root = request.build_absolute_uri('/')  # example: http://127.0.0.1:8000/
             password_reset_url = '{0}user/reset_password/{1}/'.format(host_root, token)
-            send_mail_response_code = \
-                ForgotPassword.send_password_reset_email(user.profile.main_username,
-                                                         user.email,
-                                                         password_reset_url)
-            # queue.enqueue(ForgotPassword.send_password_reset_email, user.profile.main_username,
-            #               user.email,
-            #               password_reset_url)
-            if send_mail_response_code == 200:
-                return JsonResponse({"status": _("Succeeded. Please check your email.")},
+            # send_mail_response_code = \
+            #     ForgotPassword.send_password_reset_email(user.profile.main_username,
+            #                                              user.email,
+            #                                              password_reset_url)
+            data = {"type":forgot_password_type,
+                    "username" : user.profile.main_username,
+                    "email": user.email,
+                    "url": password_reset_url}
+            queue.enqueue(json.dumps(data))
+
+            # if send_mail_response_code == 200:
+            return JsonResponse({"status": _("Succeeded. Please check your email.")},
                                     status=HTTP_200_OK)
-            else:
-                return JsonResponse({"error": _("Failure in sending email. Try later")},
-                                    status=send_mail_response_code)
+            # else:
+            #     return JsonResponse({"error": _("Failure in sending email. Try later")},
+            #                         status=send_mail_response_code)
 
         except User.DoesNotExist:
             return JsonResponse({"error": _("Wrong_email")},
@@ -282,7 +285,7 @@ class ResetPassword(APIView):
 class VerificationRequest(APIView):
 
     @staticmethod
-    def send_password_reset_email(username, email, email_verification_url):
+    def send_verification_email(username, email, email_verification_url):
         # email_api_url = 'http://192.168.10.66:80/api/send/mail'  # TODO: shouldn't be someplace else?
         subject = "Email verification for Akkaskhuneh"  # TODO: translate it later
         body = """
@@ -309,19 +312,24 @@ class VerificationRequest(APIView):
 
         host_root = request.build_absolute_uri('/')  # example: http://127.0.0.1:8000/
         email_verification_url = '{0}user/verify_email/{1}/'.format(host_root, token)
-        send_mail_response_code = \
-            VerificationRequest.send_password_reset_email(profile.main_username,
-                                                          user.email,
-                                                          email_verification_url)
+        # send_mail_response_code = \
+        #     VerificationRequest.send_verification_email(profile.main_username,
+        #                                                 user.email,
+        #                                                 email_verification_url)
+        data = {"type": email_verification_type,
+                "username": profile.main_username,
+                "email": user.email,
+                "url": email_verification_url}
+        queue.enqueue(json.dumps(data))
         # queue.enqueue(ForgotPassword.send_password_reset_email, user.profile.main_username,
         #               user.email,
         #               password_reset_url)
-        if send_mail_response_code == 200:
-            return JsonResponse({"status": _("Succeeded. Please check your email.")},
+        # if send_mail_response_code == 200:
+        return JsonResponse({"status": _("Succeeded. Please check your email.")},
                                 status=HTTP_200_OK)
-        else:
-            return JsonResponse({"error": _("Failure in sending email. Try later")},
-                                status=send_mail_response_code)
+        # else:
+        #     return JsonResponse({"error": _("Failure in sending email. Try later")},
+        #                         status=send_mail_response_code)
 
 
 @permission_classes((AllowAny,))
