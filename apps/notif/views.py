@@ -9,7 +9,7 @@ from Redis.globals import *
 
 
 @permission_classes((AllowAny,))
-class SaveToDataBase(APIView):
+class RedisActions(APIView):
     def post(self, request):
         if str(request.META.get("REMOTE_ADDR")) == "127.0.0.1":
             type = request.data.get("type")
