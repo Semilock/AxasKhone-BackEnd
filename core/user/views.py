@@ -2,33 +2,30 @@
 # TODO:TEST GET , POST PROFILE SERIALIZER
 # TODO: email for profile serializer post
 
+import json
+import uuid
+
+from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.sites import requests
-from rest_framework import generics
+from django.http import JsonResponse
+from django.utils.translation import gettext as _
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
-from config.const import *
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
+from rest_framework.views import APIView
+
 from Redis.globals import *
-from apps.notif.models import Notification
+from config.const import *
 from config.const import bio_max_length
 from config.utils import validate_charfield_input
-from core.user.models import UserFollow, UserFollowRequest
-
-from .serializers import ProfileSerializer
-from rest_framework_jwt.settings import api_settings
-from rest_framework.views import APIView
-from django.contrib.auth.models import User
-from django.http import JsonResponse
 from core.user.models import Profile, PasswordResetRequests
-from django.http import HttpResponse
-from django.utils.translation import gettext as _
-import uuid
-import json
-# import requests
+from core.user.models import UserFollow, UserFollowRequest
+from .serializers import ProfileSerializer
 
-from django.contrib.auth.password_validation import validate_password
+
+# import requests
 
 
 # @permission_classes((AllowAny,))
@@ -437,39 +434,4 @@ class Accept(APIView):
 #             following_profile = ProfileSerializer(following.destination,  context={'request': request} ).data
 #             following_list.append(following_profile)
 #         return JsonResponse({"following_list":following_list})
-
-
-def create_user_follow(destination, source):
-    UserFollow.objects.create(source=source, destination=destination)
-    notif = Notification(type=follow_type, receiver=destination, sender=source, object=destination)
-    notif.you = True
-    notif.save()
-    # create_follow_notif_for_friends(destination, source)
-
-
-# def create_follow_notif_for_friends(destination, source):
-#     friends = source.followers.list
-#     for friend in friends:
-#         if not friend==destination:
-#             print(friend.main_username)
-#             notif = Notification(type=follow_type, receiver=friend, sender=source, object=destination)
-#             notif.you = False
-#             notif.save()
-
-
-def create_user_follow_request(destination, source):
-    UserFollowRequest.objects.create(source=source, destination=destination)
-    notif = Notification(type=follow_request_type, receiver=destination, sender=source, object=destination)
-    notif.you = True
-    notif.save()
-
-
-def create_accept_follow_request(destination, source):
-    UserFollow.objects.create(source=source, destination=destination)
-    notif = Notification(type=accept_follow_request_type, receiver=source, sender=destination, object=source)
-    notif.you = True
-    notif.save()
-    accepting_user = Notification(type=follow_type, you=True, receiver=destination, sender=source, object=source)
-    accepting_user.save()
-    # create_follow_notif_for_friends(destination, source)
 

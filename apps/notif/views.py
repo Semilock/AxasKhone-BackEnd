@@ -1,15 +1,9 @@
-import json
-
-from django.shortcuts import render
-
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView, status
 
 from apps.notif.models import Notification
-from apps.notif.serializers import NotifSerializer
-from core.post.models import Post
 from core.user.models import Profile, UserFollow
 from Redis.globals import *
 
@@ -35,9 +29,11 @@ class SaveToDataBase(APIView):
                 notif.save()
             if type == follow_type:
                 user_followers = UserFollow.objects.filter(destination=sender)
-                # friends= [item.source for item in user_followers]
                 for f in user_followers:
-                    if not (f.source == receiver):
+                    if not (Notification.objects.filter(type=type,
+                                                        receiver=f.source,
+                                                        sender=Profile.objects.get(id=sender),
+                                                        you=True).exists()):
                         notif = Notification(type=type,
                                              receiver=f.source,
                                              sender=Profile.objects.get(id=sender),

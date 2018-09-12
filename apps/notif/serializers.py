@@ -11,14 +11,14 @@ class NotifSerializer(serializers.ModelSerializer):
     sender = ProfileSerializer()
     object = ProfileSerializer()
     post = serializers.SerializerMethodField()
+
     class Meta:
         model = Notification
-        # fields = ('type', 'is_shown', 'receiver', 'you', 'sender', 'object')
 
         fields = ('type', 'is_shown', 'receiver', 'you', 'sender', 'post', 'object')
 
     def get_post(self, obj):
-        if not obj.data==None:
-            return PostSerializerNOTIF(Post.objects.get(id= obj.data)).data
+        if not obj.data == None:
+            return PostSerializerNOTIF(Post.objects.get(id=obj.data)).data
         else:
             return ""
