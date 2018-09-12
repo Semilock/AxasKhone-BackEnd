@@ -276,7 +276,7 @@ class VerificationRequest(APIView):
         subject = "Email verification for Akkaskhuneh"  # TODO: translate it later
         body = """
                    <p>Hello dear {0},</p>
-                   <p>You can verify your email <a href="{1}">here. Until you do, your access will be limited.</p>
+                   <p>You can verify your email <a href="{1}">here</a>. Until you do, your access will be limited.</p>
                    """.format(username, email_verification_url)  # TODO: translate it later
 
         return send_mail(email, subject, body)
@@ -313,6 +313,7 @@ class VerificationRequest(APIView):
                                 status=send_mail_response_code)
 
 
+@permission_classes((AllowAny,))
 class VerifyEmail(APIView):
     def post(self, request, email_verification_token):
         # TODO: should be logged
@@ -331,9 +332,9 @@ class VerifyEmail(APIView):
                                     status=HTTP_400_BAD_REQUEST)
             profile.email_verified = True
             profile.save()
-            email_verification_request.delet()
+            email_verification_request.delete()
             return JsonResponse({"status": _("succeeded")})
-        except PasswordResetRequests.DoesNotExist:
+        except EmailVerificationRequests.DoesNotExist:
             return JsonResponse({"error": _("Invalid_request")},
                                 status=HTTP_400_BAD_REQUEST)
 
