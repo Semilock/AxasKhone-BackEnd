@@ -38,6 +38,7 @@ import uuid
 from config.utils import send_mail, VerifiedPermission
 # import json
 # import requests
+
 from django.contrib.auth.password_validation import validate_password
 import logging
 
@@ -463,7 +464,8 @@ class Follow(APIView):
         if destination is None:
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
         if UserFollow.objects.filter(source=source, destination=destination).exists():
-            return JsonResponse({"error": "already_followed"})
+            UserFollow.objects.get(source=source, destination=destination).delete()
+            return JsonResponse({"status": "unfollowed"})
         if destination.is_public:
             UserFollow.objects.create(source=source, destination=destination)
             data = {"type": follow_type,
@@ -476,6 +478,9 @@ class Follow(APIView):
             queue.enqueue(json.dumps(data))
             return JsonResponse({"status": "done"})
         else:
+            if UserFollowRequest.objects.filter(source=source, destination=destination).exists():
+                UserFollowRequest.objects.filter(source=source, destination=destination).delete()
+                return JsonResponse({"status": "unfollowed"})
             UserFollowRequest.objects.create(source=source, destination=destination)
             data = {"type": follow_request_type,
                     "receiver": destination.id,
@@ -487,19 +492,19 @@ class Follow(APIView):
             queue.enqueue(json.dumps(data))
             return JsonResponse({"statuas": "follow_request_sent"})
 
-
-@permission_classes((VerifiedPermission,))
-class Unfollow(APIView):
-    def post(self, request):
-        source = request.user.profile
-        destination_username = request.data.get('username')
-        destination = Profile.objects.filter(main_username=destination_username).first()
-        if destination is None:
-            return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
-        if UserFollow.objects.filter(source=source, destination=destination).exists():
-            UserFollow.objects.get(source=source, destination=destination).delete()
-            return JsonResponse({"status": "succeeded"})
-        return JsonResponse({"status": "already_unfollowed"})
+#
+# @permission_classes((VerifiedPermission,))
+# class Unfollow(APIView):
+#     def post(self, request):
+#         source = request.user.profile
+#         destination_username = request.data.get('username')
+#         destination = Profile.objects.filter(main_username=destination_username).first()
+#         if destination is None:
+#             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
+#         if UserFollow.objects.filter(source=source, destination=destination).exists():
+#             UserFollow.objects.get(source=source, destination=destination).delete()
+#             return JsonResponse({"status": "succeeded"})
+#         return JsonResponse({"status": "already_unfollowed"})
 
 @permission_classes((VerifiedPermission,))
 class Accept(APIView):
@@ -534,22 +539,23 @@ class Accept(APIView):
             return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
 
 
-#
-# class FollowerList(generics.ListCreateAPIView):
-#     def get(self, request):a bit bug debuged!
-#         follower_list=[]
-#         followers = UserFollow.objects.filter(destination= request.user.profile)
-#         for follower in followers:
-#             follower_profile = ProfileSerializer(follower.source,  context={'request': request} ).data
-#             follower_list.append(follower_profile)
-#         return JsonResponse({"follower_list":follower_list})
-#
-# class FollowingList(APIView):
-#     def get(self, request):
-#         following_list=[]
-#         followings = UserFollow.objects.filter(source= request.user.profile)
-#         for following in followings:
-#             following_profile = ProfileSerializer(following.destination,  context={'request': request} ).data
-#             following_list.append(following_profile)
-#         return JsonResponse({"following_list":following_list})
+
+
+class FollowerList(generics.ListCreateAPIView):
+    def get(self, request)
+        follower_list=[]
+        followers = UserFollow.objects.filter(destination= request.user.profile)
+        for follower in followers:
+            follower_profile = ProfileSerializer(follower.source,  context={'request': request} ).data
+            follower_list.append(follower_profile)
+        return JsonResponse({"follower_list":follower_list})
+
+class FollowingList(APIView):
+    def get(self, request):
+        following_list=[]
+        followings = UserFollow.objects.filter(source= request.user.profile)
+        for following in followings:
+            following_profile = ProfileSerializer(following.destination,  context={'request': request} ).data
+            following_list.append(following_profile)
+        return JsonResponse({"following_list":following_list})
 
