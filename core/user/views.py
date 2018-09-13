@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.sites import requests
 from django.http import JsonResponse
+from django.template import loader
 from django.utils.translation import gettext as _
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
@@ -331,28 +332,25 @@ class VerificationRequest(APIView):
 
 @permission_classes((AllowAny,))
 class VerifyEmail(APIView):
-    def post(self, request, email_verification_token):
+    def get(self, request, email_verification_token):
         # TODO: should be logged
-
+        verify_template = loader.get_template('email_verified.html')
         try:
             email_verification_request = EmailVerificationRequests.objects.get(
                 hashed_token=EmailVerificationRequests.hash_token(email_verification_token)
             )  # may throw DoesNotExist
             if email_verification_request.expired():
-                return JsonResponse({"error": _("Invalid_request")},  # TODO: error: expired ?
-                                    status=HTTP_400_BAD_REQUEST)
+                return HttpResponse(verify_template.render({'message': 'your token is expired. please try again!'}))
 
             profile = email_verification_request.profile
             if profile.email_verified:
-                return JsonResponse({"error": _("Already verified")},  # is this line reachable?
-                                    status=HTTP_400_BAD_REQUEST)
+                return HttpResponse(verify_template.render({'message': 'your email is already verified!'}))
             profile.email_verified = True
             profile.save()
             email_verification_request.delete()
-            return JsonResponse({"status": _("succeeded")})
+            return HttpResponse(verify_template.render({'message': 'email successfully verified:)'}))
         except EmailVerificationRequests.DoesNotExist:
-            return JsonResponse({"error": _("Invalid_request")},
-                                status=HTTP_400_BAD_REQUEST)
+            return HttpResponse(verify_template.render({'message': 'invalid request!'}))
 
 class ChangePassword(APIView):
     """"
