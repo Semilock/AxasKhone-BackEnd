@@ -35,7 +35,7 @@ from core.user.models import Profile, PasswordResetRequests, EmailVerificationRe
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
 import uuid
-from config.utils import send_mail, VerifiedPermission
+from config.utils import send_mail, VerifiedPermission, now_ms
 # import json
 # import requests
 from django.contrib.auth.password_validation import validate_password
@@ -117,6 +117,15 @@ class Register(APIView):
         this should take email instead of username
         """
 
+        req_time = now_ms()
+        client_IP = request.META.get('REMOTE_ADDR')
+        client_url = request.path
+        log_message = client_IP + ' > ' + request.method + ' ' + client_url
+        log_level = 'INFO'
+        # logger.log(log_level, log_message)
+        logger.info(log_message)
+
+
         email = request.POST.get("email")
         password = request.POST.get("password")
         fullname = request.POST.get("fullname")
@@ -126,7 +135,15 @@ class Register(APIView):
 
         response = RegisterValidation()
         response = response.post(request)
-        if(response.status_code==400):
+        print(response.status_code)
+        if response.status_code==400:
+            # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+            log_result = 'Validation failed.'
+            response_time = now_ms() - req_time
+            log_level = 'WARNING'
+            log_message = client_IP + ' < ' + request.method + ' ' + client_url + " " + log_result + ' ' + response_time + 'ms'
+            # logger.log(log_level, log_message)
+            logger.warning(log_message)
             return (response)
 
         if username is None or username == "":
@@ -196,6 +213,10 @@ class ForgotPassword(APIView):
         return send_mail(email, subject, body)
 
     def post(self, request):
+
+        # logger.debug(__name__)
+        # logger.debug(request.path)
+        # logger.debug(self.__module__ + "." + self.__class__.__qualname__)
         email = request.data.get('email')
         client_IP = request.META.get('REMOTE_ADDR')
         try:

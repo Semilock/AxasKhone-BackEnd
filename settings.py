@@ -194,10 +194,11 @@ logging.config.dictConfig({
     'formatters': {
         'default': {
             # exact format is not important, this is the minimum information
-            'format': '%(asctime)s %(pathname)-12s %(levelname)-8s: %(message)s',
+            'format': '{levelname:<8} {asctime} {funcName:<12}: {message}',
+            'style': '{',
         },
         'verbose': {
-            'format': '{levelname:<8} {asctime} {pathname} {process:d} {thread:d}: {message}',
+            'format': '{levelname:<8} {asctime} {funcName:<12} {process:d} {thread:d}: {message}',
             'style': '{',
         },
         'django.server': DEFAULT_LOGGING['formatters']['django.server'],
