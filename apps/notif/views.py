@@ -16,7 +16,7 @@ class RedisActions(APIView):
     def post(self, request):
         if str(request.META.get("REMOTE_ADDR")) == "127.0.0.1":
             type = request.data.get("type")
-            if type==forgot_password_type:
+            if type == forgot_password_type:
                 return self.forgot_pass_mail(request)
             if type == email_verification_type:
                 return self.verify_email(request)
@@ -25,6 +25,15 @@ class RedisActions(APIView):
             object = request.data.get("object")
             you = request.data.get("you")
             id = request.data.get("id")
+            if type != comment_type and \
+                    Notification.objects.filter(type=type,
+                                                receiver=Profile.objects.get(id=receiver),
+                                                sender=Profile.objects.get(id=sender),
+                                                object=Profile.objects.get(id=object),
+                                                you=True).exists():
+                return Response(status=status.HTTP_200_OK)
+            if type == follow_type:
+                self.delete_follow_request_notif(object, receiver, sender)
             notif = Notification(type=type,
                                  receiver=Profile.objects.get(id=receiver),
                                  sender=Profile.objects.get(id=sender),
@@ -39,6 +48,16 @@ class RedisActions(APIView):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_403_FORBIDDEN)
+
+    def delete_follow_request_notif(self, object, receiver, sender):
+        if Notification.objects.filter(type=follow_request_type,
+                                       receiver=Profile.objects.get(id=receiver),
+                                       sender=Profile.objects.get(id=sender),
+                                       you=True).exists():
+            Notification.objects.get(type=follow_request_type,
+                                     receiver=Profile.objects.get(id=receiver),
+                                     sender=Profile.objects.get(id=sender),
+                                     you=True).delete()
 
     def create_notif_for_all_followers(self, object, sender, type):
         user_followers = UserFollow.objects.filter(destination=sender)
