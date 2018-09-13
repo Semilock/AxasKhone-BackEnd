@@ -540,22 +540,22 @@ class Accept(APIView):
 
 
 
-
-class FollowerList(generics.ListCreateAPIView):
-    def get(self, request)
-        follower_list=[]
-        followers = UserFollow.objects.filter(destination= request.user.profile)
-        for follower in followers:
-            follower_profile = ProfileSerializer(follower.source,  context={'request': request} ).data
-            follower_list.append(follower_profile)
-        return JsonResponse({"follower_list":follower_list})
-
-class FollowingList(APIView):
-    def get(self, request):
-        following_list=[]
-        followings = UserFollow.objects.filter(source= request.user.profile)
-        for following in followings:
-            following_profile = ProfileSerializer(following.destination,  context={'request': request} ).data
-            following_list.append(following_profile)
-        return JsonResponse({"following_list":following_list})
-
+#
+# class FollowerList(generics.ListCreateAPIView):
+#     def get(self, request)
+#         follower_list=[]
+#         followers = UserFollow.objects.filter(destination= request.user.profile)
+#         for follower in followers:
+#             follower_profile = ProfileSerializer(follower.source,  context={'request': request} ).data
+#             follower_list.append(follower_profile)
+#         return JsonResponse({"follower_list":follower_list})
+#
+# class FollowingList(APIView):
+#     def get(self, request):
+#         following_list=[]
+#         followings = UserFollow.objects.filter(source= request.user.profile)
+#         for following in followings:
+#             following_profile = ProfileSerializer(following.destination,  context={'request': request} ).data
+#             following_list.append(following_profile)
+#         return JsonResponse({"following_list":following_list})
+#
