@@ -30,10 +30,8 @@ LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '192.168.10.63',
+    '192.168.10.136',
     '127.0.0.1',
-    '10.0.2.2',
-    'testserver',
 ]
 
 # Application definition
