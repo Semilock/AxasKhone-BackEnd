@@ -19,7 +19,7 @@ urlpatterns = [
                   url(r'^admin/', admin.site.urls),
                   url(r'^login/', TokenObtainPairView.as_view()),
                   url(r'^refresh/', TokenRefreshView.as_view()),
-                  url(r'^register/', views.Register.as_view()),
-                  url(r'^register_validation/', views.RegisterValidation.as_view()),
+                  url(r'^register/', views.Register.as_view(), name="register"),
+                  url(r'^register_validation/', views.RegisterValidation.as_view(), name="register_validation"),
 
 ] + router.urls + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) # TODO
