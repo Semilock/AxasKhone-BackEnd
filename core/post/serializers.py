@@ -1,5 +1,8 @@
-#TODO: Test post with tags work correctly
+#TODO: Test post with tags work correct
+import datetime
+
 from django.conf import settings
+from django.utils.timezone import utc
 from rest_framework import serializers
 from core.user.serializers import ProfileSerializer
 from .models import Post, Favorite, Tag, Comment, Like
@@ -59,10 +62,11 @@ class PostSerializerGET(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     like_number = serializers.SerializerMethodField()
     comment_number = serializers.SerializerMethodField()
+    time = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ('url', 'image', 'caption', 'pk', 'profile', 'location', 'tags', 'is_liked', 'like_number', 'comment_number', 'created_at')
+        fields = ('url', 'image', 'caption', 'pk', 'profile', 'location', 'tags', 'is_liked', 'like_number', 'comment_number', 'created_at', 'time')
 
         read_only_fields = ('pk', 'created_at')
 
@@ -74,6 +78,19 @@ class PostSerializerGET(serializers.ModelSerializer):
 
     def get_comment_number(self, obj):
         return Comment.objects.filter(post=obj).count()
+    def get_time(self,obj):
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        diff = int((now - obj.created_at).total_seconds())
+        if diff<60:
+            return str(diff)+" s"
+        elif diff<3600:
+            return str(int(diff/60))+" m"
+        elif diff<3600*24:
+            return str(int(diff/3600))+" h"
+        elif diff<7*3600*24:
+            return str(int(diff/(3600*24))) + " d"
+        else:
+            return str(int(diff)/(7*24*3600))+ "w"
 
 class PostSerializerNOTIF(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
