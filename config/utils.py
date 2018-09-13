@@ -54,7 +54,23 @@ def send_mail(to, subject, body):
 
 def now_ms():
     """
-
     :return: now in millisecond
     """
-    int(round(time.time() * 1000))
+    return int(round(time.time() * 1000))
+
+
+def req_log_message(request, req_time):
+    client_IP = request.META.get('REMOTE_ADDR')
+    client_url = request.path
+    log_message = '{0} > {1} {2}'.format(client_IP, request.method, client_url)
+    return log_message
+
+
+def res_log_message(request, log_result, req_time, res_time):
+    client_IP = request.META.get('REMOTE_ADDR')
+    client_url = request.path
+    log_result = 'Validation failed.'
+    response_time = now_ms() - req_time
+    log_message = '{0} < {1} {2} {3} {4}ms'.format(client_IP, request.method,
+                                                   client_url, log_result, response_time)
+    return log_message

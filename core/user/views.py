@@ -35,7 +35,7 @@ from core.user.models import Profile, PasswordResetRequests, EmailVerificationRe
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
 import uuid
-from config.utils import send_mail, VerifiedPermission, now_ms
+from config.utils import send_mail, VerifiedPermission, now_ms, req_log_message, res_log_message
 # import json
 # import requests
 from django.contrib.auth.password_validation import validate_password
@@ -118,11 +118,13 @@ class Register(APIView):
         """
 
         req_time = now_ms()
-        client_IP = request.META.get('REMOTE_ADDR')
-        client_url = request.path
-        log_message = client_IP + ' > ' + request.method + ' ' + client_url
-        log_level = 'INFO'
+        # client_IP = request.META.get('REMOTE_ADDR')
+        # client_url = request.path
+        # log_message =
+        # log_level = 'INFO'
         # logger.log(log_level, log_message)
+
+        log_message = req_log_message(request, req_time)
         logger.info(log_message)
 
 
@@ -139,10 +141,11 @@ class Register(APIView):
         if response.status_code==400:
             # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             log_result = 'Validation failed.'
-            response_time = now_ms() - req_time
-            log_level = 'WARNING'
-            log_message = client_IP + ' < ' + request.method + ' ' + client_url + " " + log_result + ' ' + response_time + 'ms'
+            # response_time = now_ms() - req_time
+            # log_level = 'WARNING'
+            # log_message = client_IP + ' < ' + request.method + ' ' + client_url + " " + log_result + ' ' + response_time + 'ms'
             # logger.log(log_level, log_message)
+            log_message = res_log_message(request, log_result, req_time, now_ms())
             logger.warning(log_message)
             return (response)
 
