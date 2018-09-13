@@ -4,7 +4,7 @@
 
 import json
 import uuid
-
+from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.sites import requests
@@ -243,32 +243,77 @@ class ResetPassword(APIView):
     * For updating password should contain 'new_password'.
     """
 
-    def post(self, request, reset_password_token):
+    def get(self, request, reset_password_token):
         client_IP = request.META.get('REMOTE_ADDR')
+        verify_template = loader.get_template('show_message.html')
+        reset_password_template = loader.get_template('reset_password.html')
         try:
             password_reset_request = PasswordResetRequests.objects.get(
                 hashed_token=PasswordResetRequests.hash_token(reset_password_token)
             )  # may throw DoesNotExist
         except PasswordResetRequests.DoesNotExist:
             logger.warning('Failed password reset attempt from {0}. Invalid token.'.format(client_IP))
-            return JsonResponse({"error": _("Invalid_request")},
-                                status=HTTP_400_BAD_REQUEST)
+            return HttpResponse(verify_template.render({'message': 'invalid token'}))
+
         if password_reset_request.expired():
             logger.info('Failed password reset attempt from {0}. Expired token.'.format(client_IP))
             password_reset_request.delete()
-            return JsonResponse({"error": _("Invalid_request")},  # TODO: error: expired ?
-                                status=HTTP_400_BAD_REQUEST)
-        if request.data.get('validation') == 'true':
-            return JsonResponse({"status": _("succeeded")},
-                                status=HTTP_200_OK)
 
-        new_password = request.data.get('new_password')
+            return HttpResponse(verify_template.render({'message': 'token is expired'}))
+        host_root = request.build_absolute_uri('/')  # example: http://127.0.0.1:8000/
+        password_reset_url = '{0}user/reset_password/{1}/'.format(host_root, reset_password_token)
+        # return HttpResponse(reset_password_template.render(context={'u': password_reset_url}))
+        return render(request, template_name="reset_password.html", context={'u': password_reset_url,})
+        #  needs deep linking
+        # if request.data.get('validation') == 'true':
+        #     return JsonResponse({"status": _("succeeded")},
+        #                         status=HTTP_200_OK)
+
+        # new_password = request.data.get('new_password')
+        # user = password_reset_request.user
+        # try:
+        #     validate_password(new_password)
+        # except:
+        #     logger.info('Failed new password setting attempt for user {0} from {1}. Password validation failed.'.format(user.id, client_IP))
+        #     return JsonResponse({"error": _("weak_password")}, status=HTTP_400_BAD_REQUEST)
+        #
+        # user.set_password(new_password)
+        # user.save()
+        # password_reset_request.delete()
+        # logger.info('Successful password reset for user {0} from {1}.'.format(user.id, client_IP))
+        #
+        # # TODOdone: should password_reset_request be disabled ? is deleted
+        # return JsonResponse({"status": _("succeeded")})
+
+
+    def post(self, request, reset_password_token):
+        client_IP = request.META.get('REMOTE_ADDR')
+        verify_template = loader.get_template('show_message.html')
+        try:
+            password_reset_request = PasswordResetRequests.objects.get(
+                hashed_token=PasswordResetRequests.hash_token(reset_password_token)
+            )  # may throw DoesNotExist
+        except PasswordResetRequests.DoesNotExist:
+            logger.warning('Failed password reset attempt from {0}. Invalid token.'.format(client_IP))
+            return HttpResponse(verify_template.render({'message': 'invalid token'}))
+
+        if password_reset_request.expired():
+            logger.info('Failed password reset attempt from {0}. Expired token.'.format(client_IP))
+            password_reset_request.delete()
+            return HttpResponse(verify_template.render({'message': 'token is expired'}))
+        #  needs deep linking
+        # if request.data.get('validation') == 'true':
+        #     return JsonResponse({"status": _("succeeded")},
+        #                         status=HTTP_200_OK)
+        new_password = request.POST.get('new_password')
+        # new_password = request.data.get('new_password')
         user = password_reset_request.user
         try:
             validate_password(new_password)
         except:
             logger.info('Failed new password setting attempt for user {0} from {1}. Password validation failed.'.format(user.id, client_IP))
-            return JsonResponse({"error": _("weak_password")}, status=HTTP_400_BAD_REQUEST)
+            # return JsonResponse({"error": _("weak_password")}, status=HTTP_400_BAD_REQUEST)
+            return redirect("")
 
         user.set_password(new_password)
         user.save()
@@ -277,7 +322,6 @@ class ResetPassword(APIView):
 
         # TODOdone: should password_reset_request be disabled ? is deleted
         return JsonResponse({"status": _("succeeded")})
-
 
 
 class VerificationRequest(APIView):
@@ -334,7 +378,7 @@ class VerificationRequest(APIView):
 class VerifyEmail(APIView):
     def get(self, request, email_verification_token):
         # TODO: should be logged
-        verify_template = loader.get_template('email_verified.html')
+        verify_template = loader.get_template('show_message.html')
         try:
             email_verification_request = EmailVerificationRequests.objects.get(
                 hashed_token=EmailVerificationRequests.hash_token(email_verification_token)
