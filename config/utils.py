@@ -1,6 +1,7 @@
 import json
 import requests
 from rest_framework import permissions
+import time
 
 class VerifiedPermission(permissions.BasePermission):
     """
@@ -50,3 +51,10 @@ def send_mail(to, subject, body):
     payload = json.dumps(payload)  # converting to json
     result = requests.post(email_api_url, headers=headers, data=payload)
     return result.status_code
+
+def now_ms():
+    """
+
+    :return: now in millisecond
+    """
+    int(round(time.time() * 1000))
