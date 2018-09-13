@@ -296,16 +296,17 @@ class NameViewSet(mixins.ListModelMixin,
             distance = len(str(item.fullname))
             for pattern in pattern_set:
                 distance = min(LD(item.fullname, pattern), distance)
-            query_list.append({"fullname": item.fullname, 'distance': distance})
+            query_list.append({"profile": item, 'distance': distance})
         query_list=sorted(query_list, key= lambda x: x['distance'])[:30]
         result=[]
         for item in query_list:
-            result.append(item['fullname'])
+            profile= ProfileSerializer(item["profile"], context={'request': request})
+            result.append(profile.data)
         return Response({"results": result})
 
-        queryset_paginate = self.paginate_queryset(queryset)
-        serializer = ProfileSerializer(queryset_paginate, context={'request': request}, many=True)
-        return Response(serializer.data)
+        # queryset_paginate = self.paginate_queryset(queryset)
+        # serializer = ProfileSerializer(queryset_paginate, context={'request': request}, many=True)
+        # return Response(serializer.data)
         # serializer = []
         # for item in queryset_paginate:
         #     serializer.append(item.main_username)

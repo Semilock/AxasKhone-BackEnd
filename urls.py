@@ -8,6 +8,7 @@ from core.user import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from core.user.viewSets import ProfileViewSet
 
+app_name="back"
 
 router = routers.DefaultRouter()
 router.register('profile_info' , ProfileViewSet)
