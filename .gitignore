@@ -8,7 +8,7 @@ __pycache__/
 local_settings.py
 db.sqlite3
 media
-**/migrations/0*
+**/migrations/000*
 images
 profile_photos
 
@@ -26,3 +26,5 @@ images
 .idea
 *.xml
 
+# macOS
+.DS_Store
