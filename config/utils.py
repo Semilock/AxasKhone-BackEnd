@@ -1,5 +1,8 @@
 import json
+import datetime
+
 import requests
+from django.utils.timezone import utc
 from rest_framework import permissions
 import time
 
@@ -58,3 +61,18 @@ def now_ms():
     :return: now in millisecond
     """
     int(round(time.time() * 1000))
+
+
+def show_time_passed(time):
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        diff = int((now - time).total_seconds())
+        if diff < 60:
+            return str(diff) + " s"
+        elif diff < 3600:
+            return str(int(diff / 60)) + " m"
+        elif diff < 3600 * 24:
+            return str(int(diff / 3600)) + " h"
+        elif diff < 7 * 3600 * 24:
+            return str(int(diff / (3600 * 24))) + " d"
+        else:
+            return str(int(diff) / (7 * 24 * 3600)) + "w"
