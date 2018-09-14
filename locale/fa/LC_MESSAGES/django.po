@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-29 10:49+0430\n"
+"POT-Creation-Date: 2018-09-11 09:36+0430\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,42 +18,81 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: core/user/views.py:75
-msgid "empty_email"
-msgstr "لطفا ایمیل را وارد کنید"
+#: core/post/models.py:25
+msgid "File too large. Size should not exceed 2 MiB."
+msgstr "حجم تصویر وارد شده بیشتر از مقدار مجاز(یک مگابایت) است."
 
-#: core/user/views.py:78 core/user/views.py:123
-msgid "empty_password"
-msgstr "لطفا رمزعبور را وارد کنید"
-
-#: core/user/views.py:81 core/user/views.py:172
-msgid "bad_email"
-msgstr "فرمت ایمیل صحیح نیست"
-
-#: core/user/views.py:87 core/user/views.py:165
-msgid "this username is already taken"
-msgstr "این نام کاربری قبلا استفاده شده است"
-
-#: core/user/views.py:92 core/user/views.py:132
-msgid "weak_password"
-msgstr "رمزعبور ضعیف است"
-
-#: core/user/views.py:98 core/user/views.py:168
-msgid "this email is already taken"
-msgstr "این ایمیل قبلا استفاده شده است"
-
-#: core/user/views.py:111 core/user/views.py:135 core/user/views.py:187
-#: core/user/views.py:212
+#: core/post/views.py:22 core/post/views.py:28 core/post/views.py:44
+#: core/post/views.py:52 core/post/viewsets.py:51 core/post/viewsets.py:103
+#: core/post/viewsets.py:122 core/user/views.py:96 core/user/views.py:156
+#: core/user/views.py:245 core/user/views.py:258 core/user/views.py:285
+#: core/user/views.py:336
 msgid "succeeded"
 msgstr "عملیات موفقیت آمیز بود!"
 
-#: core/user/views.py:127
+#: core/post/viewsets.py:40
+#, fuzzy
+#| msgid "This field is required."
+msgid "image is required"
+msgstr "این فیلد لازم است"
+
+#: core/user/views.py:78
+msgid "empty_email"
+msgstr "لطفا ایمیل را وارد کنید"
+
+#: core/user/views.py:81 core/user/views.py:273
+msgid "empty_password"
+msgstr "لطفا رمزعبور را وارد کنید"
+
+#: core/user/views.py:84 core/user/views.py:319
+msgid "bad_email"
+msgstr "فرمت ایمیل صحیح نیست"
+
+#: core/user/views.py:90 core/user/views.py:143 core/user/views.py:315
+msgid "this email is already taken"
+msgstr "این ایمیل قبلا استفاده شده است"
+
+#: core/user/views.py:95 core/user/views.py:252 core/user/views.py:282
+msgid "weak_password"
+msgstr "رمزعبور ضعیف است"
+
+#: core/user/views.py:112
+msgid "please enter username"
+msgstr "نام کاربری را وارد کنید"
+
+#: core/user/views.py:114 core/user/views.py:116
+msgid "bad username"
+msgstr "فرمت نام کاربری صحیح نمی باشد"
+
+#: core/user/views.py:118 core/user/views.py:328
+msgid "long bio"
+msgstr "بایو طولانی است!"
+
+#: core/user/views.py:132 core/user/views.py:312
+msgid "this username is already taken"
+msgstr "این نام کاربری قبلا استفاده شده است"
+
+#: core/user/views.py:208
+msgid "Succeeded. Please check your email."
+msgstr "عملیات موفقیت آمیز بود‌! لطفا ایمیل خود ا چک کنید!"
+
+#: core/user/views.py:211
+msgid "Failure in sending email. Try later"
+msgstr "خطا در ازسال ایمیل! لطفا مجددا تلاش کنید!"
+
+#: core/user/views.py:215
+#, fuzzy
+#| msgid "bad_email"
+msgid "Wrong_email"
+msgstr "فرمت ایمیل صحیح نیست"
+
+#: core/user/views.py:242 core/user/views.py:260
+msgid "Invalid_request"
+msgstr ""
+
+#: core/user/views.py:277
 msgid "wrong_old_password!"
 msgstr "لطفا رمزعبور قبلی را صحیح وارد کنید"
-
-#: core/user/views.py:201
-msgid "failed"
-msgstr "عملیات با شکست مواجه شد!"
 
 #: venv/lib/python3.5/site-packages/django/contrib/messages/apps.py:7
 msgid "Messages"
@@ -510,7 +549,7 @@ msgstr ""
 
 #: venv/lib/python3.5/site-packages/django/forms/fields.py:534
 msgid "No file was submitted."
-msgstr ""
+msgstr "هیچ عکسی انتخاب نشده است!"
 
 #: venv/lib/python3.5/site-packages/django/forms/fields.py:535
 msgid "The submitted file is empty."
@@ -1314,6 +1353,13 @@ msgstr ""
 #: venv/lib/python3.5/site-packages/rest_framework_simplejwt/tokens.py:196
 msgid "Token is blacklisted"
 msgstr ""
+
+#~ msgid "you can not add other users posts to your favorites"
+#~ msgstr ""
+#~ "شما مجاز به افزودن پست کاربران دیگر به لیست علاقه مندی های خود نیستید!"
+
+#~ msgid "failed"
+#~ msgstr "عملیات با شکست مواجه شد!"
 
 #~ msgid "Please provide both email and password"
 #~ msgstr "لطفا هم ایمیل و هم پسورد را وارد کنید"

@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import logging.config
+from django.utils.log import DEFAULT_LOGGING
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from datetime import timedelta
@@ -28,8 +30,8 @@ LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    '192.168.10.136',
     '127.0.0.1',
-    '10.0.2.2'
 ]
 
 # Application definition
@@ -44,6 +46,7 @@ INSTALLED_APPS = [
 
     'core.post',
     'core.user',
+    'apps.notif',
 
 
     'rest_framework',
@@ -146,9 +149,12 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication',
     ),
 
+    # 'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+
     # pagination config
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 5 # TODO: change later
+
 }
 
 MEDIA_URL = '/media/'
@@ -156,7 +162,7 @@ MEDIA_URL = '/media/'
 # simple JWT settings
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=2),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -173,6 +179,103 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
 
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=15),  # TODO: change this later!!!!
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=2), #TODO: change this later!!!!
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),  # TODO: change this later!!!!
 }
+
+# Disable Django's logging setup
+LOGGING_CONFIG = None
+LOGLEVEL = 'DEBUG' if DEBUG else 'INFO'
+# LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            # exact format is not important, this is the minimum information
+            'format': '%(asctime)s %(pathname)-12s %(levelname)-8s: %(message)s',
+        },
+        'verbose': {
+            'format': '{levelname:<8} {asctime} {pathname} {process:d} {thread:d}: {message}',
+            'style': '{',
+        },
+        'django.server': DEFAULT_LOGGING['formatters']['django.server'],
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+    'handlers': {
+        # console logs to stderr
+        'console': {
+            'level': LOGLEVEL,
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
+        'file': {
+            'level': LOGLEVEL,
+            'class': 'logging.FileHandler',
+            'formatter': 'verbose',
+            'filename': 'log.log',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'filters': ['require_debug_false']
+        },
+        'django.server': DEFAULT_LOGGING['handlers']['django.server'],
+    },
+    'loggers': {
+        # default for all undefined Python modules
+        '': {
+            'level': 'WARNING',
+            'handlers': ['console', 'file', 'mail_admins'],
+        },
+        # Our application code
+        'core': {
+            'level': LOGLEVEL,
+            'handlers': ['console', 'file', 'mail_admins'],
+            # Avoid double logging because of root logger
+            'propagate': False,
+        },
+        'apps': {
+            'level': LOGLEVEL,
+            'handlers': ['console', 'file', 'mail_admins'],
+            # Avoid double logging because of root logger
+            'propagate': False,
+        },
+
+        # Prevent noisy modules from logging to Sentry
+        'noisy_module': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        # Default runserver request logging
+        'django.server': DEFAULT_LOGGING['loggers']['django.server'],
+    },
+})
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': 'debug.log',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
