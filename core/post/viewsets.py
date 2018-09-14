@@ -97,7 +97,7 @@ class PostViewSet(mixins.CreateModelMixin,
         if self.request.method == 'GET':
             queryset = Comment.objects.filter(post__pk=pk)
             comments = self.paginate_queryset(queryset)
-            serializer = CommentSerializer(comments, many=True)
+            serializer = CommentSerializer(comments, many=True, context={'request': request} )
             return self.get_paginated_response(serializer.data)
         elif self.request.method == 'POST':
             text = request.data.get("text")
@@ -124,7 +124,7 @@ class PostViewSet(mixins.CreateModelMixin,
         if self.request.method == 'GET':
             queryset = Like.objects.filter(post__pk=pk)
             likes = self.paginate_queryset(queryset)
-            serializer = LikeSerializer(likes, many=True)
+            serializer = LikeSerializer(likes, many=True, context={'request': request} )
             return self.get_paginated_response(serializer.data)
         elif self.request.method == 'POST':
             post = Post.objects.get(id=pk)

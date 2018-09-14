@@ -29,26 +29,17 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class LikeSerializer(serializers.ModelSerializer):
-    username = serializers.SerializerMethodField()
-    user_picture = serializers.SerializerMethodField()
+    profile= ProfileSerializer()
     class Meta:
-        model = Comment
-        fields = ('username','user_picture')
-
-    def get_username(self, obj):
-        return obj.profile.main_username
-    def get_user_picture(self, obj):
-        if obj.profile.profile_picture=="":
-            return ""
-        return '%s%s%s' % (settings.SITE_URL,settings.MEDIA_URL, obj.profile.profile_picture)
+        model = Like
+        fields = ('profile',)
 
 class CommentSerializer(serializers.ModelSerializer):
-    username = serializers.SerializerMethodField()
-    user_picture = serializers.SerializerMethodField()
+    profile = ProfileSerializer()
     time = serializers.SerializerMethodField()
     class Meta:
         model = Comment
-        fields = ('text', 'username','user_picture', 'created_at', 'time')
+        fields = ('text', 'profile', 'created_at', 'time')
         read_only_fields = ('created_at',)
 
     def get_username(self, obj):
