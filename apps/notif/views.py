@@ -12,7 +12,7 @@ from rest_framework.views import status
 
 from Redis.globals import *
 from apps.notif.models import Notification
-from config.utils import now_ms, req_log_message, res_log_message
+from config.utils import now_ms, req_log_message, res_log_message, send_mail
 from core.user.models import Profile, UserFollow
 from core.user.views import ForgotPassword, VerificationRequest
 
@@ -29,6 +29,8 @@ class RedisActions(APIView):
                 return self.forgot_pass_mail(request, req_time)
             if type == email_verification_type:
                 return self.verify_email(request, req_time)
+            if type == invite_mail_type:
+                return self.send_invite_mail(request, req_time)
             receiver = request.data.get("receiver")
             sender = request.data.get("sender")
             object = request.data.get("object")
@@ -71,6 +73,17 @@ class RedisActions(APIView):
             log_message = res_log_message(request, log_result, req_time)
             logger.error(log_message)
             return Response(status=status.HTTP_403_FORBIDDEN)
+
+    def send_invite_mail(self, request, req_time):
+        email = request.data.get("email")
+        subject = request.data.get("subject")
+        body = request.data.get("body")
+        send_mail(email, subject, body)
+        log_result = 'invite mail sent to: "{0}".'.format(email)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
+        return JsonResponse({"status": _("Succeeded. Please check your email.")},
+                            status=HTTP_200_OK)
 
     def delete_follow_request_notif(self, object, receiver, sender):
         if Notification.objects.filter(type=follow_request_type,
