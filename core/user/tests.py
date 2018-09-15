@@ -138,19 +138,12 @@ class LoginAPIViewTestCase(APIJWTTestCase):
 
     def test_authentication_with_valid_data(self):
         response = self.client.post(self.url, {"username": self.username, "password": self.password})
-        print(self.username , self.password)
+        # print(self.username , self.password)
         self.assertEqual(200, response.status_code)
 
 
 class ProfileInfoAPIViewTestCase(APIJWTTestCase):
     url = reverse("user:profile_info")
-    user_data = {
-        "username": "edituser",
-        "email": "edittest@testuser.com",
-        # "password": "long and hard password!",
-        "fullname": "editfullname",
-        "bio": "edit bio"
-    }
 
     def setUp(self):
         self.username = "john@snow.com"
@@ -159,14 +152,34 @@ class ProfileInfoAPIViewTestCase(APIJWTTestCase):
         self.fullname = "john stark"
         self.bio = "my bio"
         self.user = User.objects.create_user(self.username, self.email, self.password)
-        self.user.profile = Profile.objects.create(self.fullname, self.email, self.password)
 
-    def login(self):
+    def register(self):
+        user_data = {
+            "username": "testuser",
+            "email": "test@testuser.com",
+            "password": "long and hard password!",
+            "fullname": "fullname",
+            "bio": "my bio"
+        }
+        response = self.client.post(reverse("register"), user_data)
+        print(response)
+
+    def test_get_profile(self):
         self.client.login(username=self.username, password=self.password, get_response=True)
 
-    # def test_create_profile(self):
-    #     # self.profile = Profile.objects.create(user_data)
-    #     response = self.client.post(self.url)
+        response = self.client.get(self.url)
+        self.assertEqual(200, response.status_code)
+
+    # def test_get_another_user_profile(self):
+    #     self.client.login(username=self.username, password=self.password, get_response=True)
+    #
+    #     self.assertEqual(200, response.status_code)
+
+    # def test_edit_profile(self):
+    #     self.client.login(username=self.username, password=self.password)
+    #     response = self.client.post(self.url, {"email": "test@testuser.com",
+    #         "password": "long and hard password!",
+    #         "fullname": "fullname",})
     #     self.assertEqual(200, response.status_code)
 
     # def test_get_profile_info(self):
