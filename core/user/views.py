@@ -582,6 +582,38 @@ class InviteFriends(APIView):
         logger.info(log_message)
         return JsonResponse({"contacts": contacts})
 
+@permission_classes((VerifiedPermission,))
+class Invite(APIView):
+    def post(self, request):
+        req_time = now_ms()
+        log_message = req_log_message(request, req_time)
+        logger.info(log_message)
+
+        invitee_email = request.data.get('email')
+        fullname = request.user.profile.fullname
+        username = request.user.profile.main_username
+        inviter_name = fullname if fullname is not None and len(fullname) > 0 else username
+        # TODO: make a db table for invitations
+        # TODO: then don't permit inviting members and only allow single time invitations
+
+        subject = "Invitation to join Akkaskhuneh"
+        body = """
+        <p>Hello,</p>
+        <p>{0} invited you to join Akkaskhuneh</p>
+        <p>Don't hesitate. Akkaskhuneh is far better than instagram, etc.</p>
+        <p>Hurry!</p>
+        """.format(inviter_name)
+
+        send_mail(invitee_email, subject, body)
+
+        response = JsonResponse({'Success': _('Invitation email sent')},
+                                status=HTTP_200_OK)
+
+        log_result = 'Success: Invitation sent to {0}'.format(invitee_email)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
+        return response
+
 
 @permission_classes((VerifiedPermission,))
 class Follow(APIView):
@@ -608,11 +640,11 @@ class Follow(APIView):
                     "id": 0
                     }
             queue.enqueue(json.dumps(data))
-            return JsonResponse({"status": "unfollowed"})
-            log_result = 'Fail: Already followed'
+            log_result = 'Success: Unfollowed'
             log_message = res_log_message(request, log_result, req_time)
             logger.info(log_message)
-            return JsonResponse({"error": "already_followed"})
+
+            return JsonResponse({"status": "unfollowed"})
         if destination.is_public:
             UserFollow.objects.create(source=source, destination=destination)
             data = {"type": follow_type,

@@ -34,6 +34,7 @@ urlpatterns = [
     path('forgot_password/', views.ForgotPassword.as_view()),
     path('reset_password/<str:reset_password_token>/', views.ResetPassword.as_view()),
     path('verification_request/', views.VerificationRequest.as_view()),
-    path('verify_email/<str:email_verification_token>/', views.VerifyEmail.as_view()), #TODO: implement
+    path('verify_email/<str:email_verification_token>/', views.VerifyEmail.as_view()),
+    path('invite/', views.Invite.as_view()),
 ]
 
