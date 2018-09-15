@@ -65,7 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'config.utils.request_info_middleware',
+    'core.middlewares.request_info_log_middleware',
 ]
 
 ROOT_URLCONF = 'urls'
@@ -195,11 +195,11 @@ logging.config.dictConfig({
     'formatters': {
         'default': {
             # exact format is not important, this is the minimum information
-            'format': '{levelname:<8} {asctime} {funcName:<12}: {message}',
+            'format': '{levelname:<8} {asctime}: {message}',
             'style': '{',
         },
         'verbose': {
-            'format': '{levelname:<8} {asctime} {funcName:<12} {process:d} {thread:d}: {message}',
+            'format': '{levelname:<8} {asctime} {process:d} {thread:d}: {message}',
             'style': '{',
         },
         'django.server': DEFAULT_LOGGING['formatters']['django.server'],

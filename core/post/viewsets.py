@@ -35,9 +35,11 @@ from .models import Tag, Comment, Like
 from .serializers import PostSerializerGET, FavoriteSerializer
 from .serializers import PostSerializerPOST, TagSerializer, CommentSerializer, \
     LikeSerializer
+from core.mixins import LoggingMixin
 
 
-class PostViewSet(mixins.CreateModelMixin,
+class PostViewSet(LoggingMixin,
+                  mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   # mixins.DestroyModelMixin,
@@ -208,7 +210,8 @@ class PostViewSet(mixins.CreateModelMixin,
 
 
 
-class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
+class HomeViewSet(LoggingMixin,
+                  GenericViewSet, mixins.ListModelMixin, ):
     queryset = Post.objects.all()
     serializer_class = PostSerializerGET
 
@@ -219,7 +222,8 @@ class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
         # return [item.post for item in profiles]
 
 
-class FavoriteViewSet(mixins.ListModelMixin,
+class FavoriteViewSet(LoggingMixin,
+                      mixins.ListModelMixin,
                       mixins.RetrieveModelMixin,
                       GenericViewSet):
     queryset = Favorite.objects.all()
@@ -280,7 +284,8 @@ class FavoriteViewSet(mixins.ListModelMixin,
         return Response(serializer.data)
 
 
-class TagViewSet(mixins.ListModelMixin,
+class TagViewSet(LoggingMixin,
+                 mixins.ListModelMixin,
                  mixins.RetrieveModelMixin,
                  GenericViewSet):
     queryset = Tag.objects.all()

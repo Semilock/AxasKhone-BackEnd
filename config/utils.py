@@ -5,6 +5,9 @@ import requests
 from django.utils.timezone import utc
 from rest_framework import permissions
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 class VerifiedPermission(permissions.BasePermission):
     """
@@ -81,18 +84,6 @@ def res_log_message(request, log_result, req_time):
                                                    client_url, log_result, response_time)
     return log_message
 
-
-def request_info_middleware(get_response):
-    def middleware(request):
-        info = {
-            'req_time': now_ms(),
-            'user_id':
-                request.user.id if request.user.is_authenticated() else None
-        }
-        request.info = info
-        response = get_response(request)
-        return response
-    return middleware
 
 def show_time_passed(time):
         now = datetime.datetime.utcnow().replace(tzinfo=utc)

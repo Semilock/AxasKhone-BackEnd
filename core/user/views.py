@@ -86,6 +86,7 @@ logger = logging.getLogger(__name__)
 
 @permission_classes((AllowAny,))
 class RegisterValidation(APIView):
+    # no logging needed
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
