@@ -42,12 +42,15 @@ class RemoveFromFavorites(APIView):
         req_time = now_ms()
         logger.info(req_log_message(request, req_time))
         favorite_id = request.data.get("favorite_id")
-        Favorite.objects.get(id=favorite_id).delete()
-        log_result = 'favorite (id={0}) removed from favorite list'.format(favorite_id)
-        log_message = res_log_message(request, log_result, req_time)
-        logger.info(log_message)
-        return Response({'status': _('succeeded')})
-
+        if (Favorite.objects.filter(id=favorite_id).exists()):
+            Favorite.objects.get(id=favorite_id).delete()
+            log_result = 'favorite (id={0}) removed from favorite list'.format(favorite_id)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
+            return Response({'status': _('succeeded')})
+        else:
+            return Response({'error': _('no such favorite')},
+                            status=HTTP_400_BAD_REQUEST)
 
 class AddToTags(APIView):
     def post(self, request):
