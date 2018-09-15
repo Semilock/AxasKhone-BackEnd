@@ -1,32 +1,38 @@
 #TODO: tag ha ba post zakhire nemishan!!!
 import json
+import logging
 import random
 
+from django.contrib.auth.models import User
 from django.http import JsonResponse
-from rest_framework import viewsets, mixins, status
+from django.utils.translation import gettext as _
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
-from django.db.models import Q
-from Redis.globals import *
-from apps.notif.models import Notification
-from apps.notif.serializers import NotifSerializer
 
-from core.user.serializers import ProfileSerializer
+from config.const import location_max_length, tag_max_length
+from config.utils import now_ms, req_log_message, res_log_message, validate_charfield_input
+
+logger = logging.getLogger(__name__)
+from Redis.globals import *
 
 from config.utils import LD
-from .models import Post, Favorite, Tag, Comment, Like
-from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer, \
-    LikeSerializer
 from core.user.models import Profile, UserFollow
-from .models import Post, Favorite
+from core.user.serializers import ProfileSerializer
+from django.db.models import Q
+from .models import Favorite
 from .models import Post
+from .models import Tag, Comment, Like
 from .serializers import PostSerializerGET, FavoriteSerializer
-from django.utils.translation import gettext as _
+from .serializers import PostSerializerPOST, TagSerializer, CommentSerializer, \
+    LikeSerializer
+from core.mixins import LoggingMixin
 
 
-class PostViewSet(mixins.CreateModelMixin,
+class PostViewSet(LoggingMixin,
+                  mixins.CreateModelMixin,
                   mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   # mixins.DestroyModelMixin,
@@ -43,19 +49,33 @@ class PostViewSet(mixins.CreateModelMixin,
         serializer.save(profile=self.request.user.profile)
 
     def create(self, request, *args, **kwargs):
+        req_time = now_ms()
+        logger.info(req_log_message(request, req_time))
         image = request.FILES.get("image")
         if image is None:
+            log_result = 'user id={0} tried to create a post without any iamge.'.format(request.user.id)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.warning(log_message)
             return Response({'error': _('image is required')},
                             status=HTTP_400_BAD_REQUEST)
         caption = request.POST.get("caption")
         location = request.POST.get("location")
+        if not (validate_charfield_input(location, location_max_length)):
+            return Response({'error': _('location is too long.')},
+                            status=HTTP_400_BAD_REQUEST)
         profile = request.user.profile
         post = Post.objects.create(image=image, caption=caption, location=location, profile=profile)
         tag_string = request.POST.get("tag_string")
         tag_list = str(tag_string).split()
         for tag in tag_list:
             t, is_created = Tag.objects.get_or_create(text=tag)
+            if not (validate_charfield_input(t, tag_max_length)):
+                return Response({'error': _('tag name is too long.')},
+                                status=HTTP_400_BAD_REQUEST)
             post.tags.add(t)
+        log_result = 'user id={0} created a new post(id={1}).'.format(request.user.id, post.id)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
         return Response({'status': _('succeeded')},
                         status=status.HTTP_201_CREATED)
 
@@ -67,12 +87,18 @@ class PostViewSet(mixins.CreateModelMixin,
 
     @action(methods=['GET'], detail=False)
     def list_posts(self, request):
+        req_time = now_ms()
+        logger.info(req_log_message(request, req_time))
         username = request.GET.get('username')
         if not username:
             username = request.user.profile.main_username
         profile = Profile.objects.filter(main_username=username).first()
         if not (UserFollow.objects.filter(source=request.user.profile,
                                           destination=profile).exists() or profile.is_public or profile == request.user.profile):
+            log_result = 'user(id={0}) requested to get lists of posts of user(id={1}) while not following him'\
+                .format(request.user.id, profile.user.id)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return Response({'error': 'not_followed'},
                             status=HTTP_400_BAD_REQUEST)
         queryset = Post.objects.filter(profile__main_username=username)
@@ -81,6 +107,9 @@ class PostViewSet(mixins.CreateModelMixin,
         serializer_context = {
             'request': request,
         }
+        log_result = 'list posts of user(id={0})'.format(profile.user.id)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
         if posts is not None:
             serializer = PostSerializerGET(posts, many=True, context=serializer_context)
             return self.get_paginated_response(serializer.data)
@@ -94,10 +123,15 @@ class PostViewSet(mixins.CreateModelMixin,
 
     @action(methods=['GET', 'POST'], detail=True)
     def comment(self, request, pk):
+        req_time = now_ms()
+        logger.info(req_log_message(request, req_time))
         if self.request.method == 'GET':
             queryset = Comment.objects.filter(post__pk=pk)
             comments = self.paginate_queryset(queryset)
             serializer = CommentSerializer(comments, many=True, context={'request': request} )
+            log_result = 'user(id={0}) requested for comments on post(id={1})'.format(request.user.id, pk)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return self.get_paginated_response(serializer.data)
         elif self.request.method == 'POST':
             text = request.data.get("text")
@@ -117,21 +151,35 @@ class PostViewSet(mixins.CreateModelMixin,
                     "id": post.id
                     }
             queue.enqueue(json.dumps(data))
+            log_result = 'user(id={0}) added a new comment on post(id={1}).Queued on redis.'.format(request.user.id,post.id)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return Response({'status': _('succeeded')})
 
     @action(methods=['GET', 'POST'], detail=True)
     def like(self, request, pk):
+        req_time = now_ms()
+        logger.info(req_log_message(request, req_time))
         if self.request.method == 'GET':
             queryset = Like.objects.filter(post__pk=pk)
             likes = self.paginate_queryset(queryset)
             serializer = LikeSerializer(likes, many=True, context={'request': request} )
+            log_result = 'user(id={0}) requested for likes on post(id={1})'.format(request.user, pk)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return self.get_paginated_response(serializer.data)
         elif self.request.method == 'POST':
             post = Post.objects.get(id=pk)
             if post is None:
+                log_result = 'post not found: user(id={0}) requested to like post(id={1}).'.format(request.user.id, post.id)
+                log_message = res_log_message(request, log_result, req_time)
+                logger.warning(log_message)
                 return JsonResponse({"error": "post_not_find"}, status=HTTP_400_BAD_REQUEST)
             if Like.objects.filter(post=post, profile=self.request.user.profile).exists():
                 Like.objects.get(post=post, profile=self.request.user.profile).delete()
+                log_result = 'user(id={0}) unliked post(id={1}).'.format(request.user.id, post.id)
+                log_message = res_log_message(request, log_result, req_time)
+                logger.info(log_message)
                 return Response({'status': _('unliked')})
             profile = self.request.user.profile
             like = Like.objects.create(post=post, profile=profile)
@@ -145,6 +193,9 @@ class PostViewSet(mixins.CreateModelMixin,
                     "id": post.id
                     }
             queue.enqueue(json.dumps(data))
+            log_result = 'user(id={0}) liked post(id={1}).Queued on redis.'.format(request.user.id,post.id)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return Response({'status': _('succeeded')})
     #
     # def unlike(self, request, pk):
@@ -158,7 +209,8 @@ class PostViewSet(mixins.CreateModelMixin,
 
 
 
-class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
+class HomeViewSet(LoggingMixin,
+                  GenericViewSet, mixins.ListModelMixin, ):
     queryset = Post.objects.all()
     serializer_class = PostSerializerGET
 
@@ -169,7 +221,8 @@ class HomeViewSet(GenericViewSet, mixins.ListModelMixin, ):
         # return [item.post for item in profiles]
 
 
-class FavoriteViewSet(mixins.ListModelMixin,
+class FavoriteViewSet(LoggingMixin,
+                      mixins.ListModelMixin,
                       mixins.RetrieveModelMixin,
                       GenericViewSet):
     queryset = Favorite.objects.all()
@@ -180,6 +233,8 @@ class FavoriteViewSet(mixins.ListModelMixin,
 
     @action(methods=['GET'], detail=False)
     def list_favorites(self, request):
+        req_time = now_ms()
+        logger.info(req_log_message(request, req_time))
         username = request.GET.get('username')
         print(username)
         if not username:
@@ -189,6 +244,9 @@ class FavoriteViewSet(mixins.ListModelMixin,
         }
         queryset = Favorite.objects.filter(profile__main_username=username)
         page = self.paginate_queryset(queryset)
+        log_result = 'user id={0} requested to receive lists of favorites of user(id={1})'.format(request.user.id,User.objects.get(profile__main_username=username))
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
         if page is not None:
             serializer = FavoriteSerializer(page, many=True, context=serializer_context)
             return self.get_paginated_response(serializer.data)
@@ -198,6 +256,8 @@ class FavoriteViewSet(mixins.ListModelMixin,
 
     @action(methods=['GET'], detail=True)
     def list_posts(self, request, pk):
+        req_time = now_ms()
+        logger.info(req_log_message(request, req_time))
         username = request.GET.get('username')
         if not username:
             username = request.user.id
@@ -212,6 +272,9 @@ class FavoriteViewSet(mixins.ListModelMixin,
         serializer_context = {
             'request': request,
         }
+        log_result = 'user id={0} requested for list of posts of favorite(id={1}).'.format(request.user.id, pk)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
         if page is not None:
             serializer = PostSerializerGET(page, many=True, context=serializer_context)
             return self.get_paginated_response(serializer.data)
@@ -220,7 +283,8 @@ class FavoriteViewSet(mixins.ListModelMixin,
         return Response(serializer.data)
 
 
-class TagViewSet(mixins.ListModelMixin,
+class TagViewSet(LoggingMixin,
+                 mixins.ListModelMixin,
                  mixins.RetrieveModelMixin,
                  GenericViewSet):
     queryset = Tag.objects.all()
@@ -232,6 +296,8 @@ class TagViewSet(mixins.ListModelMixin,
 
     @action(methods=['GET'], detail=False)
     def list_posts(self, request):
+        req_time = now_ms()
+        logger.info(req_log_message(request, req_time))
         # if not username:
         #     username = request.user.id
         tag = Tag.objects.get(text=request.GET.get('tag'))
@@ -244,6 +310,9 @@ class TagViewSet(mixins.ListModelMixin,
         serializer_context = {
             'request': request,
         }
+        log_result = 'user id={0} requested for list of posts of tag "{1}".'.format(request.user.id, tag.text)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
         if page is not None:
             serializer = PostSerializerGET(page, many=True, context=serializer_context)
             return self.get_paginated_response(serializer.data)
@@ -253,7 +322,12 @@ class TagViewSet(mixins.ListModelMixin,
 
     @action(methods=['POST'], detail=False)
     def search(self, request):
+        req_time = now_ms()
+        logger.info(req_log_message(request, req_time))
         if(request.data.get('tag')==None or request.data.get('tag') =="" or request.data.get('tag') ==" "):
+            log_result = 'empty field error in search'
+            log_message = res_log_message(request, log_result, req_time)
+            logger.warning(log_message)
             return Response({"error":"empty_field"})
         pattern_set = request.data.get('tag').split()
         query = Q()
@@ -271,6 +345,9 @@ class TagViewSet(mixins.ListModelMixin,
         result = []
         for item in query_list:
             result.append(item['text'])
+        log_result = 'user(id={0}) searched in tags'.format(request.user.id)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
         return Response({"results": result})
 
 class NameViewSet(mixins.ListModelMixin,
@@ -283,7 +360,12 @@ class NameViewSet(mixins.ListModelMixin,
 
     @action(methods=['POST'], detail=False)
     def search(self, request):
+        req_time = now_ms()
+        logger.info(req_log_message(request, req_time))
         if (request.data.get('name') == None or request.data.get('name') =="" or request.data.get('name') ==" "):
+            log_result = 'empty field error in search'
+            log_message = res_log_message(request, log_result, req_time)
+            logger.warning(log_message)
             return Response({"error":"empty_field"})
         pattern_set = request.data.get('name').split()
         query = Q()
@@ -302,6 +384,9 @@ class NameViewSet(mixins.ListModelMixin,
         for item in query_list:
             profile= ProfileSerializer(item["profile"], context={'request': request})
             result.append(profile.data)
+        log_result = 'user(id={0}) searched in users names'.format(request.user.id)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
         return Response({"results": result})
 
         # queryset_paginate = self.paginate_queryset(queryset)

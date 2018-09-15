@@ -60,7 +60,26 @@ def now_ms():
 
     :return: now in millisecond
     """
-    int(round(time.time() * 1000))
+    return int(round(time.time() * 1000))
+
+
+def req_log_message(request, req_time):
+    client_IP = request.META.get('REMOTE_ADDR')
+    client_url = request.path
+    client_user = '' if str(request.user) == 'AnonymousUser' else ':user_{0:d}'.format(request.user.id)
+    log_message = '{0}{1} > {2} {3}'.format(client_IP, client_user, request.method, client_url)
+    return log_message
+
+
+def res_log_message(request, log_result, req_time):
+    client_IP = request.META.get('REMOTE_ADDR')
+    client_user = '' if str(request.user) == 'AnonymousUser' else ':user_{0:d}'.format(request.user.id)
+    client_url = request.path
+    # log_result = 'Validation failed.'
+    response_time = now_ms() - req_time
+    log_message = '{0}{1} < {2} {3} {4} {5}ms'.format(client_IP, client_user, request.method,
+                                                   client_url, log_result, response_time)
+    return log_message
 
 
 def show_time_passed(time):
