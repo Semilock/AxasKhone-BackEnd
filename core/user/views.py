@@ -585,6 +585,10 @@ class InviteFriends(APIView):
 @permission_classes((VerifiedPermission,))
 class Invite(APIView):
     def post(self, request):
+        req_time = now_ms()
+        log_message = req_log_message(request, req_time)
+        logger.info(log_message)
+
         invitee_email = request.data.get('email')
         fullname = request.user.profile.fullname
         username = request.user.profile.main_username
@@ -604,6 +608,10 @@ class Invite(APIView):
 
         response = JsonResponse({'Success': _('Invitation email sent')},
                                 status=HTTP_200_OK)
+
+        log_result = 'Success: Invitation sent to {0}'.format(invitee_email)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
         return response
 
 
