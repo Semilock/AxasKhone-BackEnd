@@ -18,9 +18,12 @@ class AddToFavorites(APIView):
         favorite_name = request.data.get("favorite")
         user = request.user
         favorites = Favorite.objects.get_or_create(title=favorite_name, profile=user.profile)
-        favorites[0].posts.add(Post.objects.get(id=post_id))
-        return Response({'status': _('succeeded')})
-
+        if (Post.objects.filter(id=post_id).exists()):
+            favorites[0].posts.add(Post.objects.get(id=post_id))
+            return Response({'status': _('succeeded')})
+        else:
+            return Response({'error': _('no such post')},
+                            status=HTTP_400_BAD_REQUEST)
 class RemoveFromFavorites(APIView):
     def post(self, request):
         favorite_id = request.data.get("favorite_id")
