@@ -18,7 +18,7 @@ from config.utils import now_ms, req_log_message, res_log_message, validate_char
 logger = logging.getLogger(__name__)
 from Redis.globals import *
 
-from config.utils import LD
+from config.utils import levenshteinDistance
 from core.user.models import Profile, UserFollow
 from core.user.serializers import ProfileSerializer
 from django.db.models import Q
@@ -69,7 +69,7 @@ class PostViewSet(LoggingMixin,
         tag_list = str(tag_string).split()
         for tag in tag_list:
             t, is_created = Tag.objects.get_or_create(text=tag)
-            if not (validate_charfield_input(t, tag_max_length)):
+            if not (validate_charfield_input(t.text, tag_max_length)):
                 return Response({'error': _('tag name is too long.')},
                                 status=HTTP_400_BAD_REQUEST)
             post.tags.add(t)
@@ -330,16 +330,17 @@ class TagViewSet(LoggingMixin,
             logger.warning(log_message)
             return Response({"error":"empty_field"})
         pattern_set = request.data.get('tag').split()
-        query = Q()
-        for pattern in pattern_set:
-            query = query | Q(text__contains=pattern)
-        queryset = Tag.objects.filter(query).distinct().order_by('number')  # TODO: order by (number used)
+        # query = Q()
+        # for pattern in pattern_set:
+        #     query = query | Q(text__contains=pattern)
+        # queryset = Tag.objects.filter(query).distinct().order_by('number')
+        queryset = Tag.objects.all()
 
         query_list = []
         for item in queryset:
-            distance = len(str(item.text))
+            distance = max(len(str(item.text)), 100)
             for pattern in pattern_set:
-                distance = min(LD(item.text, pattern), distance)
+                distance = min(levenshteinDistance(item.text, pattern), distance)
             query_list.append({"text": item.text, 'distance': distance})
         query_list = sorted(query_list, key=lambda x: x['distance'])[:30]
         result = []
@@ -371,13 +372,13 @@ class NameViewSet(mixins.ListModelMixin,
         query = Q()
         for pattern in pattern_set:
             query = query | Q(fullname__contains=pattern)
-        queryset = Profile.objects.filter(query).distinct()
+        queryset = Profile.objects.all()
 
         query_list = []
         for item in queryset:
-            distance = len(str(item.fullname))
+            distance = max(len(str(item.fullname)), 100)
             for pattern in pattern_set:
-                distance = min(LD(item.fullname, pattern), distance)
+                distance = min(levenshteinDistance(item.fullname, pattern), distance)
             query_list.append({"profile": item, 'distance': distance})
         query_list=sorted(query_list, key= lambda x: x['distance'])[:30]
         result=[]
