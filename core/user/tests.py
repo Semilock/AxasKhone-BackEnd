@@ -118,10 +118,10 @@ class LoginAPIViewTestCase(APIJWTTestCase):
         self.password = "you_know_nothing"
         self.user = User.objects.create_user(self.username, self.email, self.password)
 
-    def test_login(self):
-        result, response = self.client.login(username=self.username, password=self.password, get_response=True)
-        # print (response.content)
-        self.assertEqual(True, result)
+    # def test_login(self):
+    #     result, response = self.client.login(username=self.username, password=self.password, get_response=True)
+    #     # print (response.content)
+    #     self.assertEqual(True, result)
 
 
     def test_authentication_without_password(self):
@@ -147,33 +147,27 @@ class ProfileInfoAPIViewTestCase(APIJWTTestCase):
 
     def setUp(self):
         self.username = "john@snow.com"
+        self.main_username = "john"
         self.email = "john@snow.com"
         self.password = "you_know_nothing"
         self.fullname = "john stark"
         self.bio = "my bio"
         self.user = User.objects.create_user(self.username, self.email, self.password)
 
-    def register(self):
-        user_data = {
-            "username": "testuser",
-            "email": "test@testuser.com",
-            "password": "long and hard password!",
-            "fullname": "fullname",
-            "bio": "my bio"
-        }
-        response = self.client.post(reverse("register"), user_data)
-        print(response)
-
     def test_get_profile(self):
-        self.client.login(username=self.username, password=self.password, get_response=True)
+        result , token = self.client.login(username=self.username, password=self.password, get_response=True)
 
         response = self.client.get(self.url)
+        print(response.content)
+        self.assertEqual(response.json().get("email"), self.email)
         self.assertEqual(200, response.status_code)
 
-    # def test_get_another_user_profile(self):
-    #     self.client.login(username=self.username, password=self.password, get_response=True)
-    #
-    #     self.assertEqual(200, response.status_code)
+    def test_get_another_user_profile(self):
+        self.client.login(username=self.username, password=self.password, get_response=True)
+        # response = self.client.get(reverse('user-info', kwargs={'user_id' : 12}))
+        response = self.client.get('%s?username=%s' %(reverse('user:profile_info'), ''))
+
+        # self.assertEqual(200, response.status_code)
 
     # def test_edit_profile(self):
     #     self.client.login(username=self.username, password=self.password)
