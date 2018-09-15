@@ -4,7 +4,6 @@ import logging
 import random
 
 from django.contrib.auth.models import User
-from django.db.models import Q
 from django.http import JsonResponse
 from django.utils.translation import gettext as _
 from rest_framework import mixins, status
@@ -13,19 +12,13 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 
-from config.utils import now_ms, req_log_message, res_log_message
+from config.const import location_max_length, tag_max_length
+from config.utils import now_ms, req_log_message, res_log_message, validate_charfield_input
 
 logger = logging.getLogger(__name__)
 from Redis.globals import *
-from apps.notif.models import Notification
-from apps.notif.serializers import NotifSerializer
-
-from core.user.serializers import ProfileSerializer
 
 from config.utils import LD
-from .models import Post, Favorite, Tag, Comment, Like
-from .serializers import PostSerializerGET, FavoriteSerializer, PostSerializerPOST, TagSerializer, CommentSerializer, \
-    LikeSerializer
 from core.user.models import Profile, UserFollow
 from core.user.serializers import ProfileSerializer
 from django.db.models import Q
@@ -65,12 +58,18 @@ class PostViewSet(mixins.CreateModelMixin,
                             status=HTTP_400_BAD_REQUEST)
         caption = request.POST.get("caption")
         location = request.POST.get("location")
+        if not (validate_charfield_input(location, location_max_length)):
+            return Response({'error': _('location is too long.')},
+                            status=HTTP_400_BAD_REQUEST)
         profile = request.user.profile
         post = Post.objects.create(image=image, caption=caption, location=location, profile=profile)
         tag_string = request.POST.get("tag_string")
         tag_list = str(tag_string).split()
         for tag in tag_list:
             t, is_created = Tag.objects.get_or_create(text=tag)
+            if not (validate_charfield_input(t, tag_max_length)):
+                return Response({'error': _('tag name is too long.')},
+                                status=HTTP_400_BAD_REQUEST)
             post.tags.add(t)
         log_result = 'user id={0} created a new post(id={1}).'.format(request.user.id, post.id)
         log_message = res_log_message(request, log_result, req_time)

@@ -87,7 +87,7 @@ def request_info_middleware(get_response):
         info = {
             'req_time': now_ms(),
             'user_id':
-                request.user.id if request.user.is_authenticated() else None
+                request.user.id if request.user.is_authenticated else None
         }
         request.info = info
         response = get_response(request)

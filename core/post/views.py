@@ -10,7 +10,8 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
 from django.utils.translation import gettext as _
 from rest_framework.viewsets import GenericViewSet
-
+from config.utils import *
+from config.const import *
 from config.utils import now_ms, req_log_message, res_log_message
 from core.post.models import Favorite, Post, Tag
 
@@ -22,6 +23,9 @@ class AddToFavorites(APIView):
         logger.info(req_log_message(request, req_time))
         post_id = request.data.get("post_id")
         favorite_name = request.data.get("favorite")
+        if not (validate_charfield_input(favorite_name, favorite_title_max_length)):
+            return Response({'error': _('favorite name is too long.')},
+                            status=HTTP_400_BAD_REQUEST)
         user = request.user
         favorites = Favorite.objects.get_or_create(title=favorite_name, profile=user.profile)
         if (Post.objects.filter(id=post_id).exists()):
