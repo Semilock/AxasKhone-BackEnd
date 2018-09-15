@@ -36,7 +36,8 @@ class Profile(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now_add=True)
-    email_verified = models.BooleanField(default=False, blank=False, null=False)
+    email_verified = models.BooleanField(default=True, blank=False, null=False)
+    #todo must change into false for default value
 
 
 @receiver(post_save, sender=User)
