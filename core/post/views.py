@@ -27,8 +27,9 @@ class AddToFavorites(APIView):
         if (Post.objects.filter(id=post_id).exists()):
             favorites[0].posts.add(Post.objects.get(id=post_id))
             log_result = 'Post(id={0}) added to favorite (id={1}.'.format(post_id, favorites[0].id)
-        log_message = res_log_message(request, log_result, req_time)
-        logger.info(log_message)return Response({'status': _('succeeded')})
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
+            return Response({'status': _('succeeded')})
         else:
             return Response({'error': _('no such post')},
                             status=HTTP_400_BAD_REQUEST)

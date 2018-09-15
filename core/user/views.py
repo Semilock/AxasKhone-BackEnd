@@ -133,7 +133,8 @@ class Register(APIView):
         response = RegisterValidation()
         response = response.post(request)
         # print(response.status_code)
-        # print(response)if response.status_code == 400:
+        # print(response)
+        if response.status_code == 400:
             log_result = 'Fail: Validation failed'
             log_message = res_log_message(request, log_result, req_time)
             logger.info(log_message)
@@ -680,15 +681,24 @@ class Accept(APIView):
             logger.info(log_message)
 
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
+        # TODO: log this
         return accept_handler(destination, source)
 
 
 class PublicPrivate(APIView):
     def post(self, request):
+        req_time = now_ms()
+        log_message = req_log_message(request, req_time)
+        logger.info(log_message)
+
         profile = request.user.profile
         if profile.is_public:
             profile.is_public = False
             profile.save()
+
+            log_result = 'Success: Profile set to private'
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return JsonResponse({"status": "private"})
         else:
             profile.is_public = True
@@ -696,7 +706,11 @@ class PublicPrivate(APIView):
             query = UserFollowRequest.objects.filter(destination=profile)
             for q in query:
                 accept_handler(source=q.source , destination=profile)
-            return JsonResponse({"statuas": "public"})
+
+            log_result = 'Success: Profile set to public'
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
+            return JsonResponse({"status": "public"})
 
 
 #
