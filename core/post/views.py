@@ -10,7 +10,8 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
 from django.utils.translation import gettext as _
 from rest_framework.viewsets import GenericViewSet
-
+from config.utils import *
+from config.const import *
 from config.utils import now_ms, req_log_message, res_log_message
 from core.post.models import Favorite, Post, Tag
 
@@ -22,6 +23,9 @@ class AddToFavorites(APIView):
         logger.info(req_log_message(request, req_time))
         post_id = request.data.get("post_id")
         favorite_name = request.data.get("favorite")
+        if not (validate_charfield_input(favorite_name, favorite_title_max_length)):
+            return Response({'error': _('favorite name is too long.')},
+                            status=HTTP_400_BAD_REQUEST)
         user = request.user
         favorites = Favorite.objects.get_or_create(title=favorite_name, profile=user.profile)
         if (Post.objects.filter(id=post_id).exists()):
@@ -38,12 +42,15 @@ class RemoveFromFavorites(APIView):
         req_time = now_ms()
         logger.info(req_log_message(request, req_time))
         favorite_id = request.data.get("favorite_id")
-        Favorite.objects.get(id=favorite_id).delete()
-        log_result = 'favorite (id={0}) removed from favorite list'.format(favorite_id)
-        log_message = res_log_message(request, log_result, req_time)
-        logger.info(log_message)
-        return Response({'status': _('succeeded')})
-
+        if (Favorite.objects.filter(id=favorite_id).exists()):
+            Favorite.objects.get(id=favorite_id).delete()
+            log_result = 'favorite (id={0}) removed from favorite list'.format(favorite_id)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
+            return Response({'status': _('succeeded')})
+        else:
+            return Response({'error': _('no such favorite')},
+                            status=HTTP_400_BAD_REQUEST)
 
 class AddToTags(APIView):
     def post(self, request):

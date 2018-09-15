@@ -5,9 +5,6 @@ import requests
 from django.utils.timezone import utc
 from rest_framework import permissions
 import time
-import logging
-
-logger = logging.getLogger(__name__)
 
 class VerifiedPermission(permissions.BasePermission):
     """
