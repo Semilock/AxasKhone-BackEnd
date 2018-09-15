@@ -484,10 +484,18 @@ class Follow(APIView):
                     "id": 0
                     }
             queue.enqueue(json.dumps(data))
-            return JsonResponse({"status": "done"})
+            return JsonResponse({"status": "followed"})
         else:
             if UserFollowRequest.objects.filter(source=source, destination=destination).exists():
                 UserFollowRequest.objects.filter(source=source, destination=destination).delete()
+                data = {"type": unfollow_type,
+                        "receiver": destination.id,
+                        "sender": source.id,
+                        "you": True,
+                        "object": destination.id,
+                        "id": 0
+                        }
+                queue.enqueue(json.dumps(data))
                 return JsonResponse({"status": "unfollowed"})
             UserFollowRequest.objects.create(source=source, destination=destination)
             data = {"type": follow_request_type,

@@ -38,11 +38,8 @@ class RedisActions(APIView):
                                             sender=Profile.objects.get(id=sender),
                                             object=Profile.objects.get(id=object),
                                             ).delete()
-                Notification.objects.filter(type=follow_type,
-                                            receiver=Profile.objects.get(id=receiver),
-                                            sender=Profile.objects.get(id=sender),
-                                            object=Profile.objects.get(id=object),
-                                            ).delete()
+                return Response(status=status.HTTP_200_OK)
+
             if type == follow_type:
                 self.delete_follow_request_notif(object, receiver, sender)
             notif = Notification(type=type,
