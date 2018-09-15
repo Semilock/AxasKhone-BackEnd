@@ -7,7 +7,6 @@ from core.user.serializers import ProfileSerializerNotif, ProfileSerializer
 
 
 class NotifSerializer(serializers.ModelSerializer):
-    receiver = ProfileSerializer()
     sender = ProfileSerializer()
     object = ProfileSerializer()
     post = serializers.SerializerMethodField()
@@ -15,7 +14,7 @@ class NotifSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
 
-        fields = ('type', 'is_shown', 'receiver', 'you', 'sender', 'post', 'object')
+        fields = ('type', 'is_shown', 'you', 'sender', 'post', 'object')
 
     def get_post(self, obj):
         if not obj.data == None:
