@@ -1,6 +1,3 @@
-from django.contrib.auth.models import User
-from django.shortcuts import render
-
 # Create your views here.
 import logging
 
@@ -8,10 +5,9 @@ from django.utils.translation import gettext as _
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
-from django.utils.translation import gettext as _
-from rest_framework.viewsets import GenericViewSet
-from config.utils import *
+
 from config.const import *
+from config.utils import *
 from config.utils import now_ms, req_log_message, res_log_message
 from core.post.models import Favorite, Post, Tag
 

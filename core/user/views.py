@@ -27,7 +27,7 @@ from core.user.models import UserFollow, UserFollowRequest
 
 from core.post.models import Tag
 
-from back.Redis.globals import queue
+from Redis.globals import queue
 from .serializers import ProfileSerializer
 from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
@@ -650,6 +650,14 @@ class Follow(APIView):
         else:
             if UserFollowRequest.objects.filter(source=source, destination=destination).exists():
                 UserFollowRequest.objects.filter(source=source, destination=destination).delete()
+                data = {"type": unfollow_type,
+                        "receiver": destination.id,
+                        "sender": source.id,
+                        "you": True,
+                        "object": destination.id,
+                        "id": 0
+                        }
+                queue.enqueue(json.dumps(data))
                 return JsonResponse({"status": "unfollowed"})
             UserFollowRequest.objects.create(source=source, destination=destination)
             data = {"type": follow_request_type,
@@ -662,22 +670,6 @@ class Follow(APIView):
             queue.enqueue(json.dumps(data))
             return JsonResponse({"statuas": "follow_request_sent"})
 
-
-#
-
-#
-# @permission_classes((VerifiedPermission,))
-# class Unfollow(APIView):
-#     def post(self, request):
-#         source = request.user.profile
-#         destination_username = request.data.get('username')
-#         destination = Profile.objects.filter(main_username=destination_username).first()
-#         if destination is None:
-#             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
-#         if UserFollow.objects.filter(source=source, destination=destination).exists():
-#             UserFollow.objects.get(source=source, destination=destination).delete()
-#             return JsonResponse({"status": "succeeded"})
-#         return JsonResponse({"status": "already_unfollowed"})
 
 @permission_classes((VerifiedPermission,))
 class Accept(APIView):

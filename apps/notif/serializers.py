@@ -14,7 +14,7 @@ class NotifSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
 
-        fields = ('type', 'is_shown', 'you', 'sender', 'post', 'object')
+        fields = ('type', 'you', 'sender', 'post', 'object')
 
     def get_post(self, obj):
         if not obj.data == None:
