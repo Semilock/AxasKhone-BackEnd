@@ -32,6 +32,17 @@ class RedisActions(APIView):
                                                 object=Profile.objects.get(id=object),
                                                 you=True).exists():
                 return Response(status=status.HTTP_200_OK)
+            if type==unfollow_type:
+                Notification.objects.filter(type=follow_request_type,
+                                            receiver=Profile.objects.get(id=receiver),
+                                            sender=Profile.objects.get(id=sender),
+                                            object=Profile.objects.get(id=object),
+                                            ).delete()
+                Notification.objects.filter(type=follow_type,
+                                            receiver=Profile.objects.get(id=receiver),
+                                            sender=Profile.objects.get(id=sender),
+                                            object=Profile.objects.get(id=object),
+                                            ).delete()
             if type == follow_type:
                 self.delete_follow_request_notif(object, receiver, sender)
             notif = Notification(type=type,

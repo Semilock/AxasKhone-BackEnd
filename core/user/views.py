@@ -465,6 +465,14 @@ class Follow(APIView):
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             UserFollow.objects.get(source=source, destination=destination).delete()
+            data = {"type": unfollow_type,
+                    "receiver": destination.id,
+                    "sender": source.id,
+                    "you": True,
+                    "object": destination.id,
+                    "id": 0
+                    }
+            queue.enqueue(json.dumps(data))
             return JsonResponse({"status": "unfollowed"})
         if destination.is_public:
             UserFollow.objects.create(source=source, destination=destination)

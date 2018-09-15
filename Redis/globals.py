@@ -11,6 +11,7 @@ forgot_password_type = 'forgot'
 email_verification_type = 'verification'
 follow_type = 'follow'
 follow_request_type = 'follow_request'
+unfollow_type = 'unfollow'
 accept_follow_request_type = 'accept_follow_request'
 
 
