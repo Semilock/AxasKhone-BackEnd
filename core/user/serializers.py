@@ -5,7 +5,7 @@ from rest_framework.relations import RelatedField, SlugRelatedField
 from rest_framework_jwt.serializers import User
 from django.conf import settings
 
-from core.user.models import UserFollow
+from core.user.models import UserFollow, UserFollowRequest
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,11 +18,12 @@ class ProfileSerializer(serializers.ModelSerializer):
     follower_number = serializers.SerializerMethodField()
     following_number = serializers.SerializerMethodField()
     profile_picture = serializers.SerializerMethodField()
+    requested_me = serializers.SerializerMethodField()
 
     # user = UserSerializer()
     class Meta:
         model = Profile
-        fields = ('fullname', 'bio', 'main_username', 'is_following', 'is_public', 'email', 'follower_number', 'following_number', 'profile_picture' )
+        fields = ('fullname', 'bio', 'main_username', 'is_following', 'is_public', 'email', 'follower_number', 'following_number', 'profile_picture', 'requested_me' )
 
     def update(self, instance, validated_data):
         user_data = validated_data.get('user')
@@ -37,6 +38,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         instance.profile_picture = serializer.data['profile_picture']
         instance.save()
         return instance
+
+    def get_requested_me(self, obj):
+        return UserFollowRequest.objects.filter(source=obj, destination=self.context.get('request').user.profile).exists()
 
     def get_is_following(self, obj):
         return UserFollow.objects.filter(source=self.context.get('request').user.profile, destination=obj).exists()

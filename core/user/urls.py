@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^invite_friends/', views.InviteFriends.as_view(), name='invite_friends'),
     url(r'^follow/' , views.Follow.as_view() , name='follow'),
     url(r'^accept/', views.Accept.as_view(), name='accept'),
+    url(r'^public_private/', views.PublicPrivate.as_view(), name='public_private'),
 
     # url(r'^register/', views.Register.as_view(), name="register"),
     # url(r'^register_validation/', views.RegisterValidation.as_view(), name="register_validation"),
