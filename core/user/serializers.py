@@ -14,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     is_following = serializers.SerializerMethodField()
+    is_requested = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     follower_number = serializers.SerializerMethodField()
     following_number = serializers.SerializerMethodField()
@@ -41,6 +42,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_requested_me(self, obj):
         return UserFollowRequest.objects.filter(source=obj, destination=self.context.get('request').user.profile).exists()
+
+    def get_is_requested(self, obj):
+        return UserFollowRequest.objects.filter(source=self.context.get('request').user.profile, destination=obj).exists()
 
     def get_is_following(self, obj):
         return UserFollow.objects.filter(source=self.context.get('request').user.profile, destination=obj).exists()

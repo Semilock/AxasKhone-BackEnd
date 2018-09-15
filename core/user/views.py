@@ -26,6 +26,8 @@ from core.user.models import Profile, PasswordResetRequests
 from core.user.models import UserFollow, UserFollowRequest
 
 from core.post.models import Tag
+
+from back.Redis.globals import queue
 from .serializers import ProfileSerializer
 from rest_framework_jwt.settings import api_settings
 from rest_framework.views import APIView
@@ -618,17 +620,10 @@ class Invite(APIView):
 @permission_classes((VerifiedPermission,))
 class Follow(APIView):
     def post(self, request):
-        req_time = now_ms()
-        log_message = req_log_message(request, req_time)
-        logger.info(log_message)
-
         source = request.user.profile
         destination_username = request.data.get('username')
         destination = Profile.objects.filter(main_username=destination_username).first()
         if destination is None:
-            log_result = 'Fail: User not found'
-            log_message = res_log_message(request, log_result, req_time)
-            logger.info(log_message)
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             UserFollow.objects.get(source=source, destination=destination).delete()
@@ -640,10 +635,6 @@ class Follow(APIView):
                     "id": 0
                     }
             queue.enqueue(json.dumps(data))
-            log_result = 'Success: Unfollowed'
-            log_message = res_log_message(request, log_result, req_time)
-            logger.info(log_message)
-
             return JsonResponse({"status": "unfollowed"})
         if destination.is_public:
             UserFollow.objects.create(source=source, destination=destination)
@@ -655,26 +646,10 @@ class Follow(APIView):
                     "id": 0
                     }
             queue.enqueue(json.dumps(data))
-
-            log_result = 'Success: Followed'
-            log_message = res_log_message(request, log_result, req_time)
-            logger.info(log_message)
             return JsonResponse({"status": "followed"})
         else:
             if UserFollowRequest.objects.filter(source=source, destination=destination).exists():
                 UserFollowRequest.objects.filter(source=source, destination=destination).delete()
-                data = {"type": unfollow_type,
-                        "receiver": destination.id,
-                        "sender": source.id,
-                        "you": True,
-                        "object": destination.id,
-                        "id": 0
-                        }
-                queue.enqueue(json.dumps(data))
-                log_result = 'Success: Unfollowed'
-                log_message = res_log_message(request, log_result, req_time)
-                logger.info(log_message)
-
                 return JsonResponse({"status": "unfollowed"})
             UserFollowRequest.objects.create(source=source, destination=destination)
             data = {"type": follow_request_type,
@@ -684,16 +659,11 @@ class Follow(APIView):
                     "object": destination.id,
                     "id": 0
                     }
-            queue.enqueue(jsont = 'Success: Unfollowed'
-                log_message = res_log_message(request, log_result, req_time)
-                logger.info(log_message)
-.dumps(data))
+            queue.enqueue(json.dumps(data))
+            return JsonResponse({"statuas": "follow_request_sent"})
 
-            log_result = 'Success: Follow request sent'
-            log_message = res_log_message(request, log_result, req_time)
-            logger.info(log_message)
-            return JsonResponse({"status": "follow_request_sent"})
 
+#
 
 #
 # @permission_classes((VerifiedPermission,))
