@@ -517,6 +517,7 @@ class Accept(APIView):
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
         if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
+            UserFollowRequest.objects.filter(source=source, destination=destination).delete()
             UserFollow.objects.create(source=source, destination=destination)
             data = {"type": accept_follow_request_type,
                     "receiver": source.id,
