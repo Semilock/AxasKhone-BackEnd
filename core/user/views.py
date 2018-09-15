@@ -3,11 +3,11 @@
 # TODO: email for profile serializer post
 
 import json
+import logging
 import uuid
 
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.sites import requests
 from django.http import JsonResponse
 from django.utils.translation import gettext as _
 from rest_framework.decorators import permission_classes
@@ -17,73 +17,19 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.views import APIView
 
 from Redis.globals import *
-from config.const import *
-from Redis.globals import *
-from apps.notif.models import Notification
-from config.const import bio_max_length
-from config.utils import validate_charfield_input
-from core.user.models import Profile, PasswordResetRequests
-from core.user.models import UserFollow, UserFollowRequest
-
-from core.post.models import Tag
-
 from Redis.globals import queue
-from .serializers import ProfileSerializer
-from rest_framework_jwt.settings import api_settings
-from rest_framework.views import APIView
-from django.contrib.auth.models import User
-from django.http import JsonResponse
-from core.user.models import Profile, PasswordResetRequests, EmailVerificationRequests
-from django.http import HttpResponse
-from django.utils.translation import gettext as _
-import uuid
+from config.const import *
+from config.const import bio_max_length
 from config.utils import send_mail, VerifiedPermission, now_ms, req_log_message, res_log_message
-# import json
-# import requests
+from config.utils import validate_charfield_input
+from core.user.models import Profile, PasswordResetRequests, EmailVerificationRequests
+from core.user.models import UserFollow, UserFollowRequest
+from .serializers import ProfileSerializer
 
-from django.contrib.auth.password_validation import validate_password
-import logging
+
 
 logger = logging.getLogger(__name__)
 
-
-# @permission_classes((AllowAny,))
-# class Login(APIView):
-#     """
-#     user should login
-#     """
-#     def post(self, request):
-#         try:
-#             email = request.data.get('email')
-#             password = request.data.get('password')
-#             user = User.objects.get(email=email)
-#             if email is None or email=="":
-#                 return Response({"error": "empty_email"},
-#                             status=HTTP_400_BAD_REQUEST)
-#             if password is None or password=="":
-#                 return Response({"error": "empty_password"},
-#                                 status=HTTP_400_BAD_REQUEST)
-#             if not user.check_password(password):
-#                 return JsonResponse({
-#                     "error": "wrong_information"
-#                 }, status=HTTP_404_NOT_FOUND)
-#
-#             jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-#             jwtencode_handler = api_settings.JWT_ENCODE_HANDLER
-#             payload = jwt_payload_handler(user)
-#             token = jwt_encode_handler(payload)
-#             return Response({'token': token})
-#
-#             return JsonResponse({
-#                 "token": token.value,
-#             })
-#             return Response({'status': 'succeeded'})
-#         except User.DoesNotExist:
-#             if email is None or email=="":
-#                 return Response({"error": "empty_email"},
-#                             status=HTTP_400_BAD_REQUEST)
-#             return JsonResponse({"error": "wrong_information"},
-#                                 status=HTTP_404_NOT_FOUND)
 
 
 @permission_classes((AllowAny,))
@@ -135,8 +81,7 @@ class Register(APIView):
 
         response = RegisterValidation()
         response = response.post(request)
-        # print(response.status_code)
-        # print(response)
+
         if response.status_code == 400:
             log_result = 'Fail: Validation failed'
             log_message = res_log_message(request, log_result, req_time)
@@ -163,14 +108,6 @@ class Register(APIView):
             log_message = res_log_message(request, log_result, req_time)
             logger.info(log_message)
             return JsonResponse({"error": _("long bio")}, status=HTTP_400_BAD_REQUEST)
-        # if email is None or email == "":
-        #     return Response({'error': _('empty_email')},
-        #                     status=HTTP_400_BAD_REQUEST)
-        # if password is None or password == "":
-        #     return Response({'error': _('empty_password')},
-        #                     status=HTTP_400_BAD_REQUEST)
-        # if not pattern.match(email):
-        #     return Response({'error': _('bad_email')})
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
@@ -201,11 +138,6 @@ class Register(APIView):
         profile.main_username = username
         profile.profile_picture = image
         profile.save()
-        # jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-        # jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-        # payload = jwt_payload_handler(user)
-        # token = jwt_encode_handler(payload)
-        # return Response({'token': token})
         log_result = 'Success: User_{0} registered'.format(user.id)
         log_message = res_log_message(request, log_result, req_time)
         logger.info(log_message)
@@ -605,9 +537,12 @@ class Invite(APIView):
         <p>Don't hesitate. Akkaskhuneh is far better than instagram, etc.</p>
         <p>Hurry!</p>
         """.format(inviter_name)
-
-        send_mail(invitee_email, subject, body)
-
+        # send_mail(invitee_email, subject, body)
+        data = {"type": invite_mail_type,
+                "email": invitee_email,
+                "subject":subject,
+                "body":body}
+        queue.enqueue(json.dumps(data))
         response = JsonResponse({'Success': _('Invitation email sent')},
                                 status=HTTP_200_OK)
 
