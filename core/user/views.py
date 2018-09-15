@@ -44,6 +44,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 # @permission_classes((AllowAny,))
 # class Login(APIView):
 #     """
@@ -81,7 +82,6 @@ logger = logging.getLogger(__name__)
 #                             status=HTTP_400_BAD_REQUEST)
 #             return JsonResponse({"error": "wrong_information"},
 #                                 status=HTTP_404_NOT_FOUND)
-
 
 
 @permission_classes((AllowAny,))
@@ -127,7 +127,7 @@ class Register(APIView):
 
         response = RegisterValidation()
         response = response.post(request)
-        if(response.status_code==400):
+        if (response.status_code == 400):
             return (response)
 
         if username is None or username == "":
@@ -222,8 +222,8 @@ class ForgotPassword(APIView):
         #     ForgotPassword.send_password_reset_email(user.profile.main_username,
         #                                              user.email,
         #                                              password_reset_url)
-        data = {"type":forgot_password_type,
-                "username" : user.profile.main_username,
+        data = {"type": forgot_password_type,
+                "username": user.profile.main_username,
                 "email": user.email,
                 "url": password_reset_url}
         queue.enqueue(json.dumps(data))
@@ -232,12 +232,10 @@ class ForgotPassword(APIView):
 
         # if send_mail_response_code == 200:
         return JsonResponse({"status": _("Succeeded. Please check your email.")},
-                                status=HTTP_200_OK)
+                            status=HTTP_200_OK)
         # else:
         #     return JsonResponse({"error": _("Failure in sending email. Try later")},
         #                         status=send_mail_response_code)
-
-
 
 
 @permission_classes((AllowAny,))
@@ -274,7 +272,9 @@ class ResetPassword(APIView):
         try:
             validate_password(new_password)
         except:
-            logger.info('Failed new password setting attempt for user {0} from {1}. Password validation failed.'.format(user.id, client_IP))
+            logger.info(
+                'Failed new password setting attempt for user {0} from {1}. Password validation failed.'.format(user.id,
+                                                                                                                client_IP))
             return JsonResponse({"error": _("weak_password")}, status=HTTP_400_BAD_REQUEST)
 
         user.set_password(new_password)
@@ -284,7 +284,6 @@ class ResetPassword(APIView):
 
         # TODOdone: should password_reset_request be disabled ? is deleted
         return JsonResponse({"status": _("succeeded")})
-
 
 
 class VerificationRequest(APIView):
@@ -331,7 +330,7 @@ class VerificationRequest(APIView):
         #               password_reset_url)
         # if send_mail_response_code == 200:
         return JsonResponse({"status": _("Succeeded. Please check your email.")},
-                                status=HTTP_200_OK)
+                            status=HTTP_200_OK)
         # else:
         #     return JsonResponse({"error": _("Failure in sending email. Try later")},
         #                         status=send_mail_response_code)
@@ -361,6 +360,7 @@ class VerifyEmail(APIView):
         except EmailVerificationRequests.DoesNotExist:
             return JsonResponse({"error": _("Invalid_request")},
                                 status=HTTP_400_BAD_REQUEST)
+
 
 class ChangePassword(APIView):
     """"
@@ -492,6 +492,7 @@ class Follow(APIView):
             queue.enqueue(json.dumps(data))
             return JsonResponse({"statuas": "follow_request_sent"})
 
+
 #
 # @permission_classes((VerifiedPermission,))
 # class Unfollow(APIView):
@@ -514,31 +515,23 @@ class Accept(APIView):
         source = Profile.objects.filter(main_username=source_username).first()
         if source is None:
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
-        if UserFollow.objects.filter(source=source, destination=destination).exists():
-            return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
-        if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
-            UserFollowRequest.objects.filter(source=source, destination=destination).delete()
-            UserFollow.objects.create(source=source, destination=destination)
-            data = {"type": accept_follow_request_type,
-                    "receiver": source.id,
-                    "sender": destination.id,
-                    "you": True,
-                    "object": source.id,
-                    "id": 0
-                    }
-            queue.enqueue(json.dumps(data))
-            data = {"type": follow_type,
-                    "receiver": destination.id,
-                    "sender": source.id,
-                    "you": True,
-                    "object": source.id,
-                    "id": 0
-                    }
-            queue.enqueue(json.dumps(data))
-            return JsonResponse({"status": "done"})
-        else:
-            return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
+        return accept_handler(destination, source)
 
+
+class PublicPrivate(APIView):
+    def post(self, request):
+        profile = request.user.profile
+        if profile.is_public:
+            profile.is_public = False
+            profile.save()
+            return JsonResponse({"status": "private"})
+        else:
+            profile.is_public = True
+            profile.save()
+            query = UserFollowRequest.objects.filter(destination=profile)
+            for q in query:
+                accept_handler(source=q.source , destination=profile)
+            return JsonResponse({"statuas": "public"})
 
 
 #
@@ -560,3 +553,29 @@ class Accept(APIView):
 #             following_list.append(following_profile)
 #         return JsonResponse({"following_list":following_list})
 #
+
+def accept_handler(destination, source):
+    if UserFollow.objects.filter(source=source, destination=destination).exists():
+        return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
+    if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
+        UserFollowRequest.objects.filter(source=source, destination=destination).delete()
+        UserFollow.objects.create(source=source, destination=destination)
+        data = {"type": accept_follow_request_type,
+                "receiver": source.id,
+                "sender": destination.id,
+                "you": True,
+                "object": source.id,
+                "id": 0
+                }
+        queue.enqueue(json.dumps(data))
+        data = {"type": follow_type,
+                "receiver": destination.id,
+                "sender": source.id,
+                "you": True,
+                "object": source.id,
+                "id": 0
+                }
+        queue.enqueue(json.dumps(data))
+        return JsonResponse({"status": "done"})
+    else:
+        return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
