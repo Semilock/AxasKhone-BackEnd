@@ -25,6 +25,7 @@ profile_photos
 images
 .idea
 *.xml
+log.log
 
 # macOS
 .DS_Store

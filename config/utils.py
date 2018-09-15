@@ -62,15 +62,30 @@ def now_ms():
 def req_log_message(request, req_time):
     client_IP = request.META.get('REMOTE_ADDR')
     client_url = request.path
-    log_message = '{0} > {1} {2}'.format(client_IP, request.method, client_url)
+    client_user = '' if str(request.user) == 'AnonymousUser' else ':user_{0:d}'.format(request.user.id)
+    log_message = '{0}{1} > {2} {3}'.format(client_IP, client_user, request.method, client_url)
     return log_message
 
 
-def res_log_message(request, log_result, req_time, res_time):
+def res_log_message(request, log_result, req_time):
     client_IP = request.META.get('REMOTE_ADDR')
+    client_user = '' if str(request.user) == 'AnonymousUser' else ':user_{0:d}'.format(request.user.id)
     client_url = request.path
-    log_result = 'Validation failed.'
+    # log_result = 'Validation failed.'
     response_time = now_ms() - req_time
-    log_message = '{0} < {1} {2} {3} {4}ms'.format(client_IP, request.method,
+    log_message = '{0}{1} < {2} {3} {4} {5}ms'.format(client_IP, client_user, request.method,
                                                    client_url, log_result, response_time)
     return log_message
+
+
+def request_info_middleware(get_response):
+    def middleware(request):
+        info = {
+            'req_time': now_ms(),
+            'user_id':
+                request.user.id if request.user.is_authenticated() else None
+        }
+        request.info = info
+        response = get_response(request)
+        return response
+    return middleware
