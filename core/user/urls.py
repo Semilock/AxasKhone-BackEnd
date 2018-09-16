@@ -14,6 +14,7 @@ router = routers.DefaultRouter()
 router.register(r'follower_list', FollowerListViewSet)
 router.register(r'following_list', FollowingListViewSet)
 
+app_name = 'user'
 
 urlpatterns = [
     url(r'^change_password/', views.ChangePassword.as_view(), name='change_password'),

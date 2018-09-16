@@ -430,8 +430,8 @@ class ProfileInfo(APIView):
         return JsonResponse(serializer)
 
     """
-          this will let user change profile info
-       """
+      this will let user change profile info
+   """
 
     def post(self, request):
         req_time = now_ms()
