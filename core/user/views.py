@@ -553,11 +553,20 @@ class Invite(APIView):
 @permission_classes((VerifiedPermission,))
 class Follow(APIView):
     def post(self, request):
+        req_time = now_ms()
+        log_message = req_log_message(request, req_time)
+        logger.info(log_message)
+
         source = request.user.profile
         destination_username = request.data.get('username')
         destination = Profile.objects.filter(main_username=destination_username).first()
         if destination is None:
+            log_result = 'Fail: User not found'
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
+
+        destination_id = destination.user.id
         if UserFollow.objects.filter(source=source, destination=destination).exists():
             UserFollow.objects.get(source=source, destination=destination).delete()
             data = {"type": unfollow_type,
@@ -568,6 +577,10 @@ class Follow(APIView):
                     "id": 0
                     }
             queue.enqueue(json.dumps(data))
+
+            log_result = 'Success: User_{0} unfollowed'.format(destination_id)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return JsonResponse({"status": "unfollowed"})
         if destination.is_public:
             UserFollow.objects.create(source=source, destination=destination)
@@ -579,6 +592,10 @@ class Follow(APIView):
                     "id": 0
                     }
             queue.enqueue(json.dumps(data))
+
+            log_result = 'Success: User_{0} followed'.format(destination_id)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return JsonResponse({"status": "followed"})
         else:
             if UserFollowRequest.objects.filter(source=source, destination=destination).exists():
@@ -591,7 +608,11 @@ class Follow(APIView):
                         "id": 0
                         }
                 queue.enqueue(json.dumps(data))
-                return JsonResponse({"status": "unfollowed"})
+
+                log_result = 'Success: Follow request to user_{0} withdrawn'.format(destination_id)
+                log_message = res_log_message(request, log_result, req_time)
+                logger.info(log_message)
+                return JsonResponse({"status": "request withdrawn"})
             UserFollowRequest.objects.create(source=source, destination=destination)
             data = {"type": follow_request_type,
                     "receiver": destination.id,
@@ -601,6 +622,9 @@ class Follow(APIView):
                     "id": 0
                     }
             queue.enqueue(json.dumps(data))
+            log_result = 'Success: Follow request sent to user_{0}'.format(destination_id)
+            log_message = res_log_message(request, log_result, req_time)
+            logger.info(log_message)
             return JsonResponse({"statuas": "follow_request_sent"})
 
 
@@ -619,9 +643,17 @@ class Accept(APIView):
             log_message = res_log_message(request, log_result, req_time)
             logger.info(log_message)
 
-            return JsonResponse({"error": "user_not_find"}, status=HTTP_400_BAD_REQUEST)
-        # TODO: log this
-        return accept_handler(destination, source)
+            return JsonResponse({"error": "user_not_found"}, status=HTTP_400_BAD_REQUEST)
+
+        destination_id = destination.user.id
+        if response.status_code == 200:
+            log_result = 'Success: Follow request from user_{0} accepted'.format(destination_id)
+        else:
+            log_result = 'Fail: No request from user_{0}'.format(destination_id)
+        log_message = res_log_message(request, log_result, req_time)
+        logger.info(log_message)
+        response = accept_handler(destination, source)
+        return response
 
 
 class PublicPrivate(APIView):
@@ -653,6 +685,7 @@ class PublicPrivate(APIView):
 
 
 def accept_handler(destination, source):
+    # no logging neede
     if UserFollow.objects.filter(source=source, destination=destination).exists():
         return JsonResponse({"error": "already_followed"}, status=HTTP_400_BAD_REQUEST)
     if (UserFollowRequest.objects.filter(source=source, destination=destination).exists()):
@@ -674,6 +707,7 @@ def accept_handler(destination, source):
                 "id": 0
                 }
         queue.enqueue(json.dumps(data))
-        return JsonResponse({"status": "done"})
+        return JsonResponse({"status": "Accepted"},
+                            status=HTTP_200_OK)
     else:
-        return JsonResponse({"error": "not_followed"}, status=HTTP_400_BAD_REQUEST)
+        return JsonResponse({"error": "No such request"}, status=HTTP_400_BAD_REQUEST)

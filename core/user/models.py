@@ -23,7 +23,7 @@ class Profile(models.Model):
     fullname = models.CharField(max_length=50, blank=True)
     bio = models.CharField(max_length=200, blank=True)
     profile_picture = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
-    is_public = models.BooleanField(default=False, blank=True)
+    is_public = models.BooleanField(default=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now_add=True)
     email_verified = models.BooleanField(default=True, blank=False, null=False)
