@@ -118,12 +118,6 @@ class LoginAPIViewTestCase(APIJWTTestCase):
         self.password = "you_know_nothing"
         self.user = User.objects.create_user(self.username, self.email, self.password)
 
-    # def test_login(self):
-    #     result, response = self.client.login(username=self.username, password=self.password, get_response=True)
-    #     # print (response.content)
-    #     self.assertEqual(True, result)
-
-
     def test_authentication_without_password(self):
         response = self.client.post(self.url, {"username": "snowman@gmail.com"})
         self.assertEqual(400, response.status_code)
@@ -154,8 +148,20 @@ class ProfileInfoAPIViewTestCase(APIJWTTestCase):
         self.bio = "my bio"
         self.user = User.objects.create_user(self.username, self.email, self.password)
 
+    def test_edit_profile_with_bad_username(self):
+        self.client.login(username=self.username, password=self.password, get_response=True)
+        self.client.post(reverse("user:profile_info"), {"bio": self.bio , "main_username": self.main_username, "fullname": self.fullname } )
+        response = self.client.post(reverse("user:profile_info"), {"bio": self.bio , "username": self.main_username, "fullname": self.fullname } )
+        self.assertEqual(400, response.status_code)
+
+    def test_edit_profile(self):
+        self.client.login(username=self.username, password=self.password, get_response=True)
+
+        response = self.client.post(reverse("user:profile_info"), {"bio": self.bio , "main_username": self.main_username, "fullname": self.fullname } )
+        self.assertEqual(200, response.status_code)
     def test_get_profile(self):
-        result , token = self.client.login(username=self.username, password=self.password, get_response=True)
+        self.client.login(username=self.username, password=self.password, get_response=True)
+        self.client.post(reverse("user:profile_info"), {"bio": self.bio , "fullname": self.fullname } )
 
         response = self.client.get(self.url)
         print(response.content)
@@ -167,13 +173,7 @@ class ProfileInfoAPIViewTestCase(APIJWTTestCase):
         # response = self.client.get(reverse('user-info', kwargs={'user_id' : 12}))
         response = self.client.get('%s?username=%s' %(reverse('user:profile_info'), ''))
 
-        # self.assertEqual(200, response.status_code)
-
-    # def test_edit_profile(self):
-    #     self.client.login(username=self.username, password=self.password)
-    #     response = self.client.post(self.url, {"email": "test@testuser.com",
-    #         "password": "long and hard password!",
-    #         "fullname": "fullname",})
+        self.assertEqual(200, response.status_code)
     #     self.assertEqual(200, response.status_code)
 
     # def test_get_profile_info(self):
