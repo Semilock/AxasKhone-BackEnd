@@ -22,11 +22,6 @@ urlpatterns = [
     url(r'^follow/' , views.Follow.as_view() , name='follow'),
     url(r'^accept/', views.Accept.as_view(), name='accept'),
     url(r'^public_private/', views.PublicPrivate.as_view(), name='public_private'),
-
-    # url(r'^register/', views.Register.as_view(), name="register"),
-    # url(r'^register_validation/', views.RegisterValidation.as_view(), name="register_validation"),
-    # url(r'^follower_list/', views.FollowerList.as_view(), name='follower_lists'),
-    # url(r'^home/', views.Home.as_view(), name='follower_lists'),
     path('', include(router.urls)),
     path('', include('core.post.urls')),
     url(r'^add_to_favorites/', AddToFavorites.as_view()),

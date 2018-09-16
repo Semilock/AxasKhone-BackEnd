@@ -1,14 +1,12 @@
-from datetime import datetime
+
+import time
+from os.path import splitext
 
 from django.core.exceptions import ValidationError
 from django.db import models
-
-# from apps.notif.models import Notification
-from config.const import caption_max_length
-from core.user.models import User, Profile
-import time
-from os.path import splitext
 from django.utils.translation import gettext as _
+
+from core.user.models import User, Profile
 
 
 def user_directory_path(instance, filename):

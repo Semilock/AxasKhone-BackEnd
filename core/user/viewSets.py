@@ -14,16 +14,6 @@ class ProfileViewSet(LoggingMixin,
     queryset = Profile.objects.all()
     lookup_field = 'main_username'
     serializer_class = ProfileSerializer
-    #
-    # def get_serializer_class(self):
-    #     if self.request.method == 'PUT' :
-    #         return ProfileSerializer
-    #     elif self.request.method == 'GET' :
-    #         return ProfileSerializer
-
-    # def retrieve(self, request, *args, **kwargs):
-        # super(ProfileViewSet, self).retrieve(request, *args, **kwargs)
-        # print("Stuff")
 
 
 class FollowerListViewSet(LoggingMixin,
