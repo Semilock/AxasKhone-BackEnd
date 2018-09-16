@@ -8,9 +8,6 @@ from django.utils import timezone
 import datetime as datetime_module
 from hashlib import sha256
 
-# TODO: followers and following list should add
-# TODO: profile pic should add to profile info
-
 
 def profile_pic_directory_path(instance, filename):
     now_in_millisecs = int(round(time.time() * 1000))
@@ -27,7 +24,6 @@ class Profile(models.Model):
     bio = models.CharField(max_length=200, blank=True)
     profile_picture = models.ImageField(upload_to=profile_pic_directory_path, blank=True, null=True)
     is_public = models.BooleanField(default=False, blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now_add=True)
     email_verified = models.BooleanField(default=True, blank=False, null=False)

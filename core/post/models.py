@@ -35,7 +35,7 @@ class Tag(models.Model):
 class Post(models.Model):
     profile = models.ForeignKey(Profile, blank=True, null=False, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=user_directory_path, blank=False, null=False,
-                              validators=[validate_size])  # TODO: upload_to = ? etc
+                              validators=[validate_size])
 
     caption = models.CharField(max_length=600, blank=True)
     tag_string = models.CharField(max_length = 100, blank=True)
@@ -68,12 +68,11 @@ class Favorite(models.Model):
     title = models.CharField(max_length=40)
     posts = models.ManyToManyField(Post)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=False, null=False)
-    many = True
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return str(self.posts.all())
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now_add=True)
 
 

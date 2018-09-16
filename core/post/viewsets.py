@@ -244,7 +244,7 @@ class FavoriteViewSet(LoggingMixin,
         }
         queryset = Favorite.objects.filter(profile__main_username=username)
         page = self.paginate_queryset(queryset)
-        log_result = 'user id={0} requested to receive lists of favorites of user(id={1})'.format(request.user.id,User.objects.get(profile__main_username=username))
+        log_result = 'user id={0} requested to receive lists of favorites of user(id={1})'.format(request.user.id,User.objects.get(profile__main_username=username).id)
         log_message = res_log_message(request, log_result, req_time)
         logger.info(log_message)
         if page is not None:
