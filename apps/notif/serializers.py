@@ -2,8 +2,8 @@ from rest_framework import serializers
 
 from apps.notif.models import Notification
 from core.post.models import Post
-from core.post.serializers import PostSerializerGET, PostSerializerNOTIF
-from core.user.serializers import ProfileSerializerNotif, ProfileSerializer
+from core.post.serializers import PostSerializerNOTIF
+from core.user.serializers import ProfileSerializer
 
 
 class NotifSerializer(serializers.ModelSerializer):

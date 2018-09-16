@@ -64,7 +64,7 @@ class RedisActions(APIView):
                 notif.save()
             if type == follow_type:
                 self.create_notif_for_all_followers(object, sender, type)
-            log_result = 'user(id={0}) notif successfully handled from redis queue'.format(sender.id)
+            log_result = 'user(id={0}) notif successfully handled from redis queue'.format(sender)
             log_message = res_log_message(request, log_result, req_time)
             logger.info(log_message)
             return Response(status=status.HTTP_200_OK)
