@@ -56,7 +56,7 @@ class PostSerializerGET(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = (
-        'url', 'image', 'caption', 'pk', 'profile', 'location', 'tags', 'is_liked', 'like_number', 'comment_number',
+        'image', 'caption', 'pk', 'profile', 'location', 'tags', 'is_liked', 'like_number', 'comment_number',
         'created_at', 'time')
 
         read_only_fields = ('pk', 'created_at')
@@ -90,7 +90,7 @@ class PostSerializerNOTIF(serializers.ModelSerializer):
 class PostSerializerPOST(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ('url', 'image', 'caption', 'location', 'pk', 'tag_string')
+        fields = ('image', 'caption', 'location', 'pk', 'tag_string')
 
     def create(self, validated_data):
         tag_string = validated_data.get('tag_string')
