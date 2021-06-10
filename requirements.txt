@@ -1,6 +1,6 @@
 certifi==2018.8.24
 chardet==3.0.4
-Django==2.1
+Django==2.2.24
 django-extensions==2.1.0
 djangorestframework==3.8.2
 djangorestframework-jwt==1.11.0
